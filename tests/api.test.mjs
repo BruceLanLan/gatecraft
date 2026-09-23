@@ -320,7 +320,7 @@ test("the server's own decision key is never handed to a caller, and its absence
   assert.equal((await handleApi({ method: "health.status" }, {})).body.result.decisionKey, "absent");
 
   // Asking the model with no key on the machine is refused with the way out, not a stack trace.
-  const refused = await handleApi({ method: "decision.fill", params: { spec } }, {});
+  const refused = await handleApi({ method: "decision.fill", params: { spec } }, { trial: null });
   assert.equal(refused.body.ok, false);
   assert.match(refused.body.error.message, /jev\.token|typesafe\.ai/);
 

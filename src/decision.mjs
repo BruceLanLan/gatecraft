@@ -202,7 +202,7 @@ export function ruleFiller(d, expression) {
 
 // A filler that asks the typed decision model through Cloudflare Workers AI. `fetch` is
 // injectable so tests never touch the network; the real one spends the caller's own money.
-export function jevFiller(d, { apiKey = null, account = null, token = null, fetch = globalThis.fetch, timeoutMs = 60_000, retries = 3 }) {
+export function jevFiller(d, { apiKey = null, account = null, token = null, url: override = null, fetch = globalThis.fetch, timeoutMs = 60_000, retries = 3 }) {
   // Two ways to the same model, because the account you need decides whether anyone can
   // start. Direct is one signup at typesafe.ai; the Cloudflare route needs a Cloudflare
   // account with Workers AI on top. Same model, same answers - checked on the same situation,
@@ -210,7 +210,9 @@ export function jevFiller(d, { apiKey = null, account = null, token = null, fetc
   // differently, so both shapes are handled here rather than in the caller.
   const direct = Boolean(apiKey);
   if (!direct && !(account && token)) throw new DecisionError("the decision model needs TYPESAFE_API_KEY (or ~/.config/gatecraft/jev.token), or CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN");
-  const url = direct ? "https://api.typesafe.ai/v1/systemone" : `https://api.cloudflare.com/client/v4/accounts/${account}/ai/run`;
+  // `url` points the direct route somewhere that speaks the same request - the free-trial
+  // service does, with a trial token in place of a key.
+  const url = direct ? (override ?? "https://api.typesafe.ai/v1/systemone") : `https://api.cloudflare.com/client/v4/accounts/${account}/ai/run`;
   const criteria = Object.fromEntries(d.choices.map((c) => [c.choice, c.phrase]));
   return async (codes, state) => {
     let lastError;

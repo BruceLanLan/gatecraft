@@ -254,7 +254,9 @@ function renderSpec(root, t, redraw) {
 function renderFill(root, t, redraw) {
   const section = card(t("decFillTitle"), 2);
   section.append(el("p", "hint", t("decFillHint")));
-  if (decideState.keyPresent === false) section.append(el("p", "warn", t("decNoKey")));
+  // Without a key: a free fill if any are left, and always the ways to not need one.
+  const freeLeft = decideState.keyPresent === false && decideState.trial?.available ? decideState.trial.left : 0;
+  if (decideState.keyPresent === false) section.append(el("p", freeLeft > 0 ? "hint" : "warn", freeLeft > 0 ? t("decTrialOffer", freeLeft, decideState.trial.limit) : decideState.trial?.available ? t("decTrialGone", decideState.trial.limit) : t("decNoKey")));
 
   // Two sources, because a page that can do nothing without a key is a page most visitors
   // bounce off. Asking the model is the real thing; filling from a rule the file already
@@ -276,6 +278,7 @@ function renderFill(root, t, redraw) {
     try {
       const out = await api("decision.fill", { spec: decideState.spec, ...(rule ? { rule } : {}) });
       decideState.fillStats = out;
+      if (out.trial && decideState.trial) decideState.trial.left = out.trial.left;
       decideState.filledBy = rule ? "rule" : "model";
       await freezeAndDraw(out.fill);
     } catch (error) { decideState.error = String(error.message); }
@@ -328,7 +331,8 @@ function renderFill(root, t, redraw) {
 
   const bar = el("div", "row");
   const go = el("button", "primary", decideState.busy === "fill" ? t("decFilling") : t("decFill"));
-  go.disabled = Boolean(decideState.busy) || decideState.keyPresent === false;
+  go.disabled = Boolean(decideState.busy) || (decideState.keyPresent === false && freeLeft <= 0);
+  if (decideState.keyPresent === false && freeLeft > 0 && decideState.busy !== "fill") go.textContent = t("decFillTrial", freeLeft);
   go.addEventListener("click", () => fillWith(null));
   bar.append(go);
   const own = el("button", decideState.keyPresent === false ? "primary" : "ghost", decideState.busy === "own" && decideState.progress ? t("decOwnProgress", decideState.progress.done, decideState.progress.total) : t("decFillOwn", calls));
@@ -349,6 +353,7 @@ function renderFill(root, t, redraw) {
     const s = decideState.fillStats;
     section.append(el("p", "result", decideState.filledBy === "rule" ? t("decFilledRule", s.answered, s.legal) : t("decFilled", s.answered, s.settled, s.legal)));
     section.append(el("p", "hint", decideState.filledBy === "rule" ? t("decFilledByRule") : decideState.filledBy === "own" ? t("decFilledByOwn", ASKS) : t("decFilledByModel")));
+    if (decideState.fillStats.trial) section.append(el("p", "warn", t("decTrialUsed", decideState.fillStats.trial.left, decideState.fillStats.trial.limit)));
   }
   if (decideState.frozen) {
     const c = decideState.frozen.certificate;
@@ -632,5 +637,8 @@ export async function probeKey() {
   try {
     const health = await api("health.status");
     decideState.keyPresent = health.decisionKey === "present";
+    // No key of their own: ask how many of the free fills this address has left, so the page
+    // can offer one instead of a dead button.
+    decideState.trial = decideState.keyPresent ? null : await api("decision.trial").catch(() => null);
   } catch { decideState.keyPresent = null; }
 }

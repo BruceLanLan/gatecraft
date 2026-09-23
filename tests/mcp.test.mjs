@@ -13,7 +13,7 @@ const spec = JSON.parse(readFileSync(new URL("../examples/charge-throttle.decisi
 const noYosys = { available: () => null, prove: () => ({ proven: false }) };
 
 function server(out) {
-  const child = spawn(process.execPath, [new URL("../scripts/mcp.mjs", import.meta.url).pathname, "--out", out], { stdio: ["pipe", "pipe", "pipe"], env: { ...process.env, TYPESAFE_API_KEY: "" } });
+  const child = spawn(process.execPath, [new URL("../scripts/mcp.mjs", import.meta.url).pathname, "--out", out], { stdio: ["pipe", "pipe", "pipe"], env: { ...process.env, TYPESAFE_API_KEY: "", GATECRAFT_TRIAL: "off" } });
   let buffer = "";
   const waiting = new Map();
   const stray = [];
@@ -102,7 +102,7 @@ test("an agent can take a decision from review to an importable module over stdi
 test("paths outside the output root are refused, and so is a key the machine does not have", async () => {
   const out = mkdtempSync(join(tmpdir(), "gatecraft-mcp-"));
   try {
-    const mcp = createGatecraftMcp({ outRoot: out, key: () => null, yosys: noYosys });
+    const mcp = createGatecraftMcp({ outRoot: out, key: () => null, trial: null, yosys: noYosys });
     for (const bundle of ["../..", "/etc", join(out, "..", "elsewhere"), out]) {
       const r = await mcp.callTool("gatecraft_decision_anchors", { bundle });
       assert.equal(r.isError, true, `${bundle} should be refused`);
@@ -119,7 +119,7 @@ test("paths outside the output root are refused, and so is a key the machine doe
 test("an agent can fill a decision with its own answers, and an agent's anchors are labelled as such", async () => {
   const out = mkdtempSync(join(tmpdir(), "gatecraft-mcp-"));
   try {
-    const mcp = createGatecraftMcp({ outRoot: out, yosys: noYosys });
+    const mcp = createGatecraftMcp({ outRoot: out, trial: null, yosys: noYosys });
     const d = parseDecision(spec);
     const says = ruleFiller(d, spec.rule);
     const listed = await mcp.callTool("gatecraft_decision_situations", { spec, limit: 512 });

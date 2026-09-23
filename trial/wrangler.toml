@@ -1,0 +1,18 @@
+# The free-trial service: a few decision-model fills per address, paid by the project's key.
+# Deploy:   npx wrangler deploy        (from this directory)
+# Secrets:  JEV_KEY (the decision model's key), SALT (hashes addresses), TOKEN_SECRET (signs
+#           trial tokens) - set with `npx wrangler secret put NAME`; none of them are in here.
+name = "gatecraft-trial"
+main = "worker.mjs"
+compatibility_date = "2026-09-01"
+workers_dev = true
+
+[[kv_namespaces]]
+binding = "TRIAL"
+id = "384a49f13d514daf98069c520e9742ae"
+
+[vars]
+LIMIT_PER_IP = "3"
+DAILY_FILLS = "200"
+MAX_SITUATIONS = "512"
+TOKEN_MINUTES = "20"

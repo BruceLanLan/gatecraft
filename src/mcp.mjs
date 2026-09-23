@@ -21,6 +21,7 @@ import { readBack, reviewDraft, settleWidths } from "./draft.mjs";
 import { decisionModule, ExportRefused } from "./decisionexport.mjs";
 import { decisionFiles } from "./job.mjs";
 import { proveWithYosys, yosysAvailable } from "./yosys.mjs";
+import { startTrial, trialUrl } from "./trial.mjs";
 
 export const PROTOCOL_VERSIONS = ["2025-06-18", "2025-03-26", "2024-11-05"];
 const MAX_ROWS = 4096;
@@ -96,7 +97,7 @@ export const TOOLS = [
 const readJson = (file) => JSON.parse(readFileSync(file, "utf8"));
 const writeJson = (file, value) => writeFileSync(file, `${JSON.stringify(value, null, 1)}\n`);
 
-export function createGatecraftMcp({ outRoot = resolve("gatecraft-out"), key = () => null, fetch = globalThis.fetch, yosys = { available: yosysAvailable, prove: proveWithYosys } } = {}) {
+export function createGatecraftMcp({ outRoot = resolve("gatecraft-out"), key = () => null, fetch = globalThis.fetch, trial = trialUrl(), yosys = { available: yosysAvailable, prove: proveWithYosys } } = {}) {
   const root = resolve(outRoot);
 
   // A bundle is a directory the server made, under its root. Anything else is refused: the
@@ -153,6 +154,7 @@ export function createGatecraftMcp({ outRoot = resolve("gatecraft-out"), key = (
       const legal = legalRows(d).length;
       if (legal > MAX_ROWS) throw new ToolError(`${legal} legal situations is more than this server fills (${MAX_ROWS})`);
       let filler;
+      let free = null;
       if (source === "rule") {
         const expression = rule ?? fixed.rule;
         if (typeof expression !== "string" || !expression.trim()) throw new ToolError("with=rule needs a rule, or a spec that states one");
@@ -171,8 +173,14 @@ export function createGatecraftMcp({ outRoot = resolve("gatecraft-out"), key = (
         };
       } else if (source === "jev") {
         const apiKey = key();
-        if (!apiKey) throw new ToolError("no decision-model key on this machine: sign up once at typesafe.ai and write the key to ~/.config/gatecraft/jev.token, or fill with=rule / with=answers");
-        filler = jevFiller(d, { apiKey, fetch });
+        if (apiKey) filler = jevFiller(d, { apiKey, fetch });
+        else if (trial) {
+          // No key here: one of the free fills, a few per address. Said in the result, with
+          // how many are left, so the agent can tell the person to bring their own.
+          try { free = await startTrial(legal, { url: trial, fetch }); }
+          catch (error) { throw new ToolError(`${error.message} Or fill with=rule / with=answers.`); }
+          filler = jevFiller(d, { apiKey: free.token, url: free.jevUrl, fetch });
+        } else throw new ToolError("no decision-model key on this machine: sign up once at typesafe.ai and write the key to ~/.config/gatecraft/jev.token, or fill with=rule / with=answers");
       } else throw new ToolError(`with must be rule, answers or jev, not ${JSON.stringify(source)}`);
 
       const fill = await fillDecision(d, filler);
@@ -197,9 +205,10 @@ export function createGatecraftMcp({ outRoot = resolve("gatecraft-out"), key = (
           `${d.name}: ${answered} of ${legal} situations answered (${source})${failed ? `, ${failed} failed and review` : ""}; ${sure} at or above the ${d.threshold} threshold.`,
           `Circuit: ${c.circuit.nand} NAND, proven equal to the table on all ${c.verification.rowsChecked} rows; second proof: ${second}. ${review} rows hand the case to a person.`,
           `The proof relates the circuit to the table and says nothing about whether the table is the policy the person wants. Next: gatecraft_decision_anchors, and put those questions to the person.`,
+          free ? `This used one of the free fills (${free.left} of ${free.limit} left for this address). After that, fill with the person's own model (with="answers"), a rule, or their own key.` : null,
           `bundle: ${dir}`,
-        ].join("\n"),
-        data: { bundle: dir, legal, answered, failed, settled: sure, nand: c.circuit.nand, rowsChecked: c.verification.rowsChecked, review, yosys: second },
+        ].filter(Boolean).join("\n"),
+        data: { bundle: dir, legal, answered, failed, settled: sure, nand: c.circuit.nand, rowsChecked: c.verification.rowsChecked, review, yosys: second, ...(free ? { trial: { left: free.left, limit: free.limit } } : {}) },
       };
     },
 

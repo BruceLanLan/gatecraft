@@ -15,6 +15,7 @@
 // transactions; nothing here ever signs or sends one.
 import { atThreshold, calibrateThreshold, codebookJson, decodeRow, fillDecision, freezeDecision, isLegal, jevFiller, parseDecision, reviewRows, ruleFiller } from "./decision.mjs";
 import { drawAnchors } from "./anchors.mjs";
+import { startTrial, trialStatus, trialUrl } from "./trial.mjs";
 import { readBack, reviewDraft } from "./draft.mjs";
 import { decisionModule } from "./decisionexport.mjs";
 import { appHtml, SKINS } from "./appexport.mjs";
@@ -292,17 +293,32 @@ export const METHODS = {
   },
 
   // Answer every legal situation. `rule` asks nobody; otherwise the decision model does.
-  "decision.fill": async ({ spec, rule = null, concurrency = 8 }, { decisionKey = null, fetch: f } = {}) => {
+  // With no key on this machine, one of the free fills is used instead - the same model, paid
+  // by the project, a few per address. A key of your own always wins, and a rule needs neither.
+  "decision.fill": async ({ spec, rule = null, concurrency = 8 }, { decisionKey = null, fetch: f, trial = trialUrl() } = {}) => {
     const d = parseDecision(spec);
     let legal = 0;
     for (let row = 0; row < 2 ** d.nIn; row++) if (isLegal(d, decodeRow(d, row))) legal += 1;
     if (legal > MAX_FILL_ROWS) throw new ApiError("bad_request", `${legal} legal situations is more than this server fills in one call (${MAX_FILL_ROWS})`);
-    const filler = rule
-      ? ruleFiller(d, rule)
-      : (() => { if (!decisionKey) throw new ApiError("bad_request", "no decision-model key on this machine: write one to ~/.config/gatecraft/jev.token (see https://typesafe.ai)"); return jevFiller(d, { apiKey: decisionKey, ...(f ? { fetch: f } : {}) }); })();
+    const net = f ? { fetch: f } : {};
+    let free = null;
+    let filler;
+    if (rule) filler = ruleFiller(d, rule);
+    else if (decisionKey) filler = jevFiller(d, { apiKey: decisionKey, ...net });
+    else if (trial) {
+      try { free = await startTrial(legal, { url: trial, ...net }); }
+      catch (error) { throw new ApiError("bad_request", error.message); }
+      filler = jevFiller(d, { apiKey: free.token, url: free.jevUrl, ...net });
+    } else throw new ApiError("bad_request", "no decision-model key on this machine: write one to ~/.config/gatecraft/jev.token (see https://typesafe.ai)");
     const fill = await fillDecision(d, filler, { concurrency: Math.min(Math.max(1, concurrency), 16) });
     const answered = fill.rows.filter((r) => r.choice);
-    return { fill, legal, answered: answered.length, failed: fill.rows.filter((r) => r.source === "failed").length, settled: answered.filter((r) => (r.confidence ?? 1) >= d.threshold).length };
+    return { fill, legal, answered: answered.length, failed: fill.rows.filter((r) => r.source === "failed").length, settled: answered.filter((r) => (r.confidence ?? 1) >= d.threshold).length, ...(free ? { trial: { left: free.left, limit: free.limit } } : {}) };
+  },
+
+  // How many free fills this address has left. Asked by the page before it offers one.
+  "decision.trial": async (_params, { fetch: f, trial = trialUrl() } = {}) => {
+    const status = trial ? await trialStatus({ url: trial, ...(f ? { fetch: f } : {}) }).catch(() => null) : null;
+    return status ? { available: true, ...status } : { available: false };
   },
 
   // Compile the filled table into a circuit proven on every row.
