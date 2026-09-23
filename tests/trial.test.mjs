@@ -108,6 +108,19 @@ test("a Worker missing any of its secrets refuses rather than signing with an em
   }
 });
 
+test("mounted under a path on another site, it answers only there and hands back URLs under it", async () => {
+  const w = world();
+  w.env.BASE_PATH = "/gatecraft";
+  const r = await fill((url, init) => w.from("203.0.113.7")(url, init));
+  assert.equal(r.body.ok, false, "the unprefixed paths are not served when mounted");
+  const mounted = await handleApi({ method: "decision.fill", params: { spec } }, { decisionKey: null, trial: "https://trial.test/gatecraft", fetch: w.from("203.0.113.7") });
+  assert.equal(mounted.body.ok, true, JSON.stringify(mounted.body.error));
+  assert.equal(mounted.body.result.answered, 192);
+  const started = await (await w.from("198.51.100.4")("https://trial.test/gatecraft/start", { method: "POST", body: JSON.stringify({ situations: 1 }) })).json();
+  assert.equal(started.url, "https://trial.test/gatecraft/v1/systemone");
+  assert.equal((await w.from("198.51.100.4")("https://trial.test/elsewhere")).status, 404, "the rest of the site is not this Worker's");
+});
+
 test("with no trial configured, a machine without a key is told how to get one", async () => {
   const r = await handleApi({ method: "decision.fill", params: { spec } }, { decisionKey: null, trial: null });
   assert.equal(r.body.ok, false);

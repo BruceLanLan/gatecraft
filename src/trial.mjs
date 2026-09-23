@@ -6,9 +6,9 @@
 // GATECRAFT_TRIAL_URL somewhere else. Nothing about the person is sent - the Worker counts by
 // the address the request comes from, hashed, and that is all it keeps.
 
-// The project's own free-trial service (trial/worker.mjs), once it has a neutral address. Until
-// then no trial is offered unless GATECRAFT_TRIAL_URL points at one.
-export const DEFAULT_TRIAL_URL = null;
+// The project's own free-trial service (trial/worker.mjs), mounted on the project's site. Its key
+// never leaves the Worker.
+export const DEFAULT_TRIAL_URL = "https://tapeout.work/gatecraft";
 
 export function trialUrl(env = process.env) {
   if (/^(off|0|false|no)$/i.test(env.GATECRAFT_TRIAL ?? "")) return null;

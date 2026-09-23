@@ -48,7 +48,7 @@ git clone https://github.com/BruceLanLan/gatecraft && cd gatecraft
 npm run ui                        # open http://127.0.0.1:4747
 ```
 
-Click **Hold a comment**, then **Read it back to me**, then **fill it from the rule in this file**. That path needs no key and no account, and everything after it is real: the proof, the circuit you can poke, the twenty questions, the verdict and the download.
+Click **Hold a comment**, then **Read it back to me**, then either **Fill and freeze** (one of your three free fills, with the calibrated model) or **fill it from the rule in this file** (free forever). Neither needs a key or an account, and everything after is real: the proof, the circuit you can poke, the twenty questions, the verdict and the download.
 
 ## Three ways to fill a decision
 
@@ -56,13 +56,16 @@ Every legal situation has to be answered once. Pick whichever you have:
 
 | | what you need | good for |
 |---|---|---|
+| **free fills** | nothing — **three per address**, paid by the project | trying the whole flow with the calibrated model before signing up for anything |
 | **a rule** | nothing — free and exact | a decision you can already write as an if-statement (the verdict will usually tell you to do just that) |
 | **your own model** | the model you set up in the page, or your agent over MCP | everyone without a decision-model account |
 | **Jev** (optional) | a free [typesafe.ai](https://typesafe.ai) account; about 1 cent per decision | the best-calibrated confidence |
 
 With your own model, each situation is asked **three times** and the confidence is how often the answers agreed — a chat model's own confidence was measured to carry nothing, while unanimous rows reproduced 96–98% of the time on a repeat. The call count is shown before you start, and the calls go from your browser straight to your provider, on your account.
 
-gatecraft never calls a model on its own and never pays for one; no key is bundled. To use Jev, write your key where only this machine can read it:
+The free fills are the one exception to "whoever uses a model pays for it": when this machine has no key, a fill goes through a small service at `tapeout.work/gatecraft` that forwards to the same model with the project's key, which never leaves that service. It stores only a count per address, and the address is hashed first. After three, the page points you at the other three ways. Switch it off with `GATECRAFT_TRIAL=off`.
+
+Otherwise gatecraft never calls a model on its own and never pays for one; no key is bundled. To use Jev with your own key, write it where only this machine can read it:
 
 ```
 mkdir -p ~/.config/gatecraft && printf '%s' 'YOUR_KEY' > ~/.config/gatecraft/jev.token && chmod 600 ~/.config/gatecraft/jev.token

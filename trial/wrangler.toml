@@ -5,13 +5,20 @@
 name = "gatecraft-trial"
 main = "worker.mjs"
 compatibility_date = "2026-09-01"
-workers_dev = true
+# Served under the project's site rather than a workers.dev address; only these paths are
+# routed here, the rest of the site is untouched.
+workers_dev = false
+routes = [
+  { pattern = "tapeout.work/gatecraft", zone_name = "tapeout.work" },
+  { pattern = "tapeout.work/gatecraft/*", zone_name = "tapeout.work" },
+]
 
 [[kv_namespaces]]
 binding = "TRIAL"
 id = "384a49f13d514daf98069c520e9742ae"
 
 [vars]
+BASE_PATH = "/gatecraft"
 LIMIT_PER_IP = "3"
 DAILY_FILLS = "200"
 MAX_SITUATIONS = "512"

@@ -70,15 +70,20 @@ export async function handle(request, env, { now = Date.now(), fetchJev = fetch 
   // and tokens signed with it could be forged by anyone who read this file. Refuse instead.
   if (!env.SALT || !env.TOKEN_SECRET || !env.JEV_KEY || !env.TRIAL) return json(503, { error: "not_configured", message: `The free trial is not available right now. ${WAYS_OUT}` });
   const url = new URL(request.url);
+  // Mounted under a path on someone else's site (BASE_PATH, e.g. "/gatecraft"): everything below
+  // is matched with that prefix taken off, and every URL handed back puts it back on.
+  const base = String(env.BASE_PATH ?? "").replace(/\/+$/, "");
+  if (base && url.pathname !== base && !url.pathname.startsWith(`${base}/`)) return json(404, { error: "not_found" });
+  const path = url.pathname.slice(base.length) || "/";
   const s = settings(env);
   const day = new Date(now).toISOString().slice(0, 10);
 
-  if (request.method === "GET" && url.pathname === "/status") {
+  if (request.method === "GET" && path === "/status") {
     const used = Number((await env.TRIAL.get(await addressKey(env, request))) ?? 0);
     return json(200, { left: Math.max(0, s.perIp - used), limit: s.perIp, maxSituations: s.maxSituations, waysOut: WAYS_OUT });
   }
 
-  if (request.method === "POST" && url.pathname === "/start") {
+  if (request.method === "POST" && path === "/start") {
     let asked;
     try { asked = await request.json(); } catch { return json(400, { error: "bad_request", message: "send { situations: n }" }); }
     const n = asked?.situations;
@@ -92,10 +97,10 @@ export async function handle(request, env, { now = Date.now(), fetchJev = fetch 
     await env.TRIAL.put(who, String(used + 1));
     await env.TRIAL.put(`day:${day}`, String(today + 1), { expirationTtl: 3 * 86400 });
     const token = await sign(env, { who, calls: n * 4, exp: now + s.minutes * 60_000, id: crypto.randomUUID() });
-    return json(200, { token, left: s.perIp - used - 1, limit: s.perIp, url: `${url.origin}/v1/systemone`, expiresAt: new Date(now + s.minutes * 60_000).toISOString() });
+    return json(200, { token, left: s.perIp - used - 1, limit: s.perIp, url: `${url.origin}${base}/v1/systemone`, expiresAt: new Date(now + s.minutes * 60_000).toISOString() });
   }
 
-  if (request.method === "POST" && url.pathname === "/v1/systemone") {
+  if (request.method === "POST" && path === "/v1/systemone") {
     const token = (request.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
     const claim = await verify(env, token);
     if (!claim) return json(401, { error: "unauthorized", message: "not a trial token from this service" });
@@ -115,7 +120,7 @@ export async function handle(request, env, { now = Date.now(), fetchJev = fetch 
     return new Response(answer.body, { status: answer.status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
   }
 
-  if (request.method === "GET" && url.pathname === "/") {
+  if (request.method === "GET" && path === "/") {
     return new Response(`gatecraft free trial: ${s.perIp} free fills per address, then bring your own model or key.\nhttps://github.com/BruceLanLan/gatecraft\n`, { headers: { "content-type": "text/plain; charset=utf-8" } });
   }
   return json(404, { error: "not_found" });
