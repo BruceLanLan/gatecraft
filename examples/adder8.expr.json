@@ -1,0 +1,10 @@
+{
+  "inputs": {"a": 8, "b": 8},
+  "outputs": {
+    "sum": {"width": 9, "expr": "a + b"}
+  },
+  "examples": [
+    {"given": {"a": 3, "b": 4}, "expect": {"sum": 7}},
+    {"given": {"a": 255, "b": 255}, "expect": {"sum": 510}}
+  ]
+}

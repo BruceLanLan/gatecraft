@@ -1,0 +1,15 @@
+{
+  "_": "The obvious situations from the first Jev table experiment (tools/jev-table.mjs, written before any of it ran), carried over so the scene-rewrite loop has anchors here too. Two of the originals used speed code 3, which this codebook does not declare, and are dropped. On this decision the stated rule is the real judge; these exist so that the loop's guard is exercised in a place where it can be checked against ground truth.",
+  "decision": "mario-jump",
+  "anchors": [
+    { "given": { "gap_ahead": 1, "enemy_ahead": 0, "on_ground": 1, "speed": 2 }, "choice": "jump", "why": "gap right ahead, running" },
+    { "given": { "gap_ahead": 0, "enemy_ahead": 1, "on_ground": 1, "speed": 1 }, "choice": "jump", "why": "enemy right ahead" },
+    { "given": { "gap_ahead": 1, "enemy_ahead": 1, "on_ground": 1, "speed": 2 }, "choice": "jump", "why": "gap and enemy both right ahead" },
+    { "given": { "gap_ahead": 0, "enemy_ahead": 0, "on_ground": 1, "speed": 1 }, "choice": "no", "why": "nothing in view" },
+    { "given": { "gap_ahead": 0, "enemy_ahead": 0, "on_ground": 1, "speed": 0 }, "choice": "no", "why": "nothing in view, stopped" },
+    { "given": { "gap_ahead": 7, "enemy_ahead": 0, "on_ground": 1, "speed": 1 }, "choice": "no", "why": "gap far away" },
+    { "given": { "gap_ahead": 0, "enemy_ahead": 7, "on_ground": 1, "speed": 1 }, "choice": "no", "why": "enemy far away" },
+    { "given": { "gap_ahead": 1, "enemy_ahead": 0, "on_ground": 0, "speed": 2 }, "choice": "no", "why": "already in mid-air" },
+    { "given": { "gap_ahead": 0, "enemy_ahead": 1, "on_ground": 0, "speed": 1 }, "choice": "no", "why": "in mid-air over an enemy" }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "_": "8x8 的贪吃蛇：蛇头会走、会转向、吃到食物加分、撞墙就死。17 位输入+状态，131072 行全部证明过。",
+  "inputs": { "left": 1, "right": 1 },
+  "state": {
+    "hx": { "width": 3, "next": "dead ? hx : (dir == 0 ? (hx == 7 ? hx : hx + 1) : dir == 2 ? (hx == 0 ? hx : hx - 1) : hx)" },
+    "hy": { "width": 3, "next": "dead ? hy : (dir == 1 ? (hy == 7 ? hy : hy + 1) : dir == 3 ? (hy == 0 ? hy : hy - 1) : hy)" },
+    "dir": { "width": 2, "next": "left ? dir + 1 : right ? dir - 1 : dir" },
+    "fx": { "width": 3, "next": "(hx == fx && hy == fy) ? fx + 3 : fx" },
+    "fy": { "width": 3, "next": "(hx == fx && hy == fy) ? fy + 5 : fy" },
+    "dead": { "width": 1, "next": "dead || (dir == 0 && hx == 7) || (dir == 1 && hy == 7) || (dir == 2 && hx == 0) || (dir == 3 && hy == 0)" }
+  },
+  "outputs": {
+    "x": { "width": 3, "expr": "hx" },
+    "y": { "width": 3, "expr": "hy" },
+    "foodx": { "width": 3, "expr": "fx" },
+    "foody": { "width": 3, "expr": "fy" },
+    "eating": { "width": 1, "expr": "hx == fx && hy == fy" },
+    "over": { "width": 1, "expr": "dead" }
+  },
+  "examples": [
+    { "given": { "left": 0, "right": 0, "hx": 0, "hy": 0, "dir": 0, "fx": 2, "fy": 0, "dead": 0 }, "expect": { "x": 0, "y": 0, "over": 0, "eating": 0 }, "then": { "hx": 1 } },
+    { "given": { "left": 0, "right": 0, "hx": 2, "hy": 0, "dir": 0, "fx": 2, "fy": 0, "dead": 0 }, "expect": { "eating": 1 }, "then": { "fx": 5, "fy": 5 } },
+    { "given": { "left": 0, "right": 0, "hx": 7, "hy": 3, "dir": 0, "fx": 2, "fy": 0, "dead": 0 }, "expect": { "over": 0 }, "then": { "dead": 1, "hx": 7 } },
+    { "given": { "left": 1, "right": 0, "hx": 3, "hy": 3, "dir": 0, "fx": 2, "fy": 0, "dead": 0 }, "expect": { "x": 3 }, "then": { "dir": 1, "hx": 4 } }
+  ]
+}

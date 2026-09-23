@@ -1,0 +1,2 @@
+#!/bin/sh
+node tools/assert_no_sensitive_info.mjs || exit 1

@@ -1,0 +1,61 @@
+{
+  "_": "The contrast partner to mario-jump. Mario's rule fits on four lines, so that decision was an upper-bound check on the pipeline, not a use for it. This one is a moderation call a community actually argues about: where sarcasm aimed at a person who was attacked first stops being allowed, and where a prior strike should count. Nobody can write that rule down, and everybody can answer one case at a time. Bucketing a real comment into the codes below is the caller's job - a person, a classifier, whatever the site already has - and is not proven here. tone, target and history each have three legal values in two bits, so code 3 in any of them is illegal and the circuit answers it with keep + review = 1 by construction.",
+  "name": "comment-hold",
+  "scene": "A public discussion forum. Comments are visible to everyone by default. Moderators can leave a comment alone, fold it behind a click, or take it down. The forum wants people to argue freely without driving anyone away.",
+  "question": "What should be done with this comment?",
+  "observe": {
+    "tone": {
+      "width": 2,
+      "raw": "how the comment is written, ignoring whether its content is right; 3 is unused",
+      "values": {
+        "0": "calmly stated, no heat in it",
+        "1": "sarcastic or mocking",
+        "2": "openly abusive: insults or name-calling"
+      }
+    },
+    "target": {
+      "width": 2,
+      "raw": "who or what the comment is aimed at; 3 is unused",
+      "values": {
+        "0": "aimed at nobody in particular",
+        "1": "aimed at an argument someone made",
+        "2": "aimed at a particular person"
+      }
+    },
+    "provoked": {
+      "width": 1,
+      "raw": "1 when the comment is a direct reply to a comment that attacked this author",
+      "values": {
+        "0": "unprompted; nobody attacked this author first",
+        "1": "a reply to a comment that attacked this author"
+      }
+    },
+    "history": {
+      "width": 2,
+      "raw": "the author's standing on the forum before this comment; 3 is unused",
+      "values": {
+        "0": "a new account with no history",
+        "1": "a long-standing member who has never been moderated",
+        "2": "an author who has had a comment taken down before"
+      }
+    },
+    "stakes": {
+      "width": 1,
+      "raw": "1 when a reader acting on the comment could be harmed (money, health, safety)",
+      "values": {
+        "0": "an ordinary topic; nothing turns on being wrong",
+        "1": "advice a reader might act on, where being wrong could cost them money or health"
+      }
+    }
+  },
+  "act": {
+    "choices": {
+      "keep": "leave the comment as it is",
+      "fold": "fold it behind a click, so it stays readable but is not in everyone's face",
+      "remove": "take the comment down"
+    },
+    "safe": "keep"
+  },
+  "threshold": 0.7,
+  "rule": "tone == 2 ? (target == 2 ? (provoked == 1 && history == 1 ? 1 : 2) : 1) : (tone == 1 && target == 2 && provoked == 0 ? 1 : 0)"
+}

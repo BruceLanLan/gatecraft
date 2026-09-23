@@ -1,0 +1,12 @@
+{
+  "inputs": {"press": 1},
+  "state": {"on": {"width": 1, "next": "press ? !on : on"}},
+  "outputs": {
+    "light": {"width": 1, "expr": "on"}
+  },
+  "examples": [
+    {"given": {"press": 1, "on": 0}, "expect": {"light": 0}, "then": {"on": 1}},
+    {"given": {"press": 1, "on": 1}, "expect": {"light": 1}, "then": {"on": 0}},
+    {"given": {"press": 0, "on": 1}, "expect": {"light": 1}, "then": {"on": 1}}
+  ]
+}

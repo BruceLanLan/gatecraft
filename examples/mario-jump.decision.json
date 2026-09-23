@@ -1,0 +1,34 @@
+{
+  "_": "One decision inside an ordinary game: should Mario press jump right now? The game loop, physics and rendering stay ordinary code; only this question goes through a proven circuit. Bucketing the raw distances into the codes below is the caller's job and is documented in each field's 'raw'. speed has three legal values in two bits: code 3 is illegal and the circuit answers it with review = 1 by construction.",
+  "name": "mario-jump",
+  "scene": "A side-scrolling platform game. Mario runs to the right. Falling into a gap or touching an enemy loses a life. A jump from the ground carries Mario forward a fixed distance: 1 tile when stopped, 2 tiles walking, 3 tiles running. He should press jump exactly when a gap or an enemy lies ahead within that distance, so the jump carries him past it; jumping when nothing is within that distance lands him short or wastes the jump. He cannot jump in mid-air.",
+  "question": "Should Mario press jump at this exact moment?",
+  "observe": {
+    "gap_ahead": {
+      "width": 3,
+      "raw": "tiles from Mario to the next gap, capped at 7; 0 when no gap is in view",
+      "values": { "0": "no gap in view", "1": "a gap 1 tile ahead", "2": "a gap 2 tiles ahead", "3": "a gap 3 tiles ahead", "4": "a gap 4 tiles ahead", "5": "a gap 5 tiles ahead", "6": "a gap 6 tiles ahead", "7": "a gap 7 or more tiles ahead" }
+    },
+    "enemy_ahead": {
+      "width": 3,
+      "raw": "tiles from Mario to the next enemy, capped at 7; 0 when no enemy is in view",
+      "values": { "0": "no enemy in view", "1": "an enemy 1 tile ahead", "2": "an enemy 2 tiles ahead", "3": "an enemy 3 tiles ahead", "4": "an enemy 4 tiles ahead", "5": "an enemy 5 tiles ahead", "6": "an enemy 6 tiles ahead", "7": "an enemy 7 or more tiles ahead" }
+    },
+    "on_ground": {
+      "width": 1,
+      "raw": "1 when Mario's feet touch a floor tile",
+      "values": { "0": "Mario is in mid-air", "1": "Mario is standing or running on the ground" }
+    },
+    "speed": {
+      "width": 2,
+      "raw": "0 stopped, 1 walking, 2 running; there is no code 3",
+      "values": { "0": "stopped", "1": "walking", "2": "running" }
+    }
+  },
+  "act": {
+    "choices": { "no": "do not jump now", "jump": "press jump now" },
+    "safe": "no"
+  },
+  "threshold": 0.7,
+  "rule": "on_ground && ((gap_ahead > 0 && gap_ahead <= speed + 1) || (enemy_ahead > 0 && enemy_ahead <= speed + 1))"
+}

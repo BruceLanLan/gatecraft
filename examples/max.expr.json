@@ -1,0 +1,12 @@
+{
+  "inputs": {"a": 4, "b": 4},
+  "outputs": {
+    "larger": {"width": 4, "expr": "a > b ? a : b"},
+    "same": {"width": 1, "expr": "a == b"}
+  },
+  "examples": [
+    {"given": {"a": 3, "b": 9}, "expect": {"larger": 9, "same": 0}},
+    {"given": {"a": 12, "b": 5}, "expect": {"larger": 12, "same": 0}},
+    {"given": {"a": 7, "b": 7}, "expect": {"larger": 7, "same": 1}}
+  ]
+}

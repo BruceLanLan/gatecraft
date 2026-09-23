@@ -1,0 +1,383 @@
+{
+ "_": "Twenty situations drawn by `decide.mjs ask` stratified by the model's confidence and answered blind - the model's own answers are never shown, so an answer here is independent of the thing it checks. The person answering was the assistant running the end-to-end acceptance on 2026-09-21, not the repo's owner. Kept because this is the only example that has been all the way through: draft, fill, freeze, Yosys, ask, calibrate, export. Calibrated verdict: delegate at threshold 0.3, deciding 97% of situations. Three anchors disagree with the table and all three fall on rows that review, so the circuit never acts on them.",
+ "decision": "expense-auto-approval",
+ "codebook": "8b06eb0c40048f611772555c047403d84fb96a0bab4234fcc4c0aaed60296dd3",
+ "drawnFrom": "out/expense/fill.json",
+ "anchors": [
+  {
+   "given": {
+    "claim_amount_band": 0,
+    "receipt_present": 1,
+    "policy_category": 0,
+    "past_claim_pattern": 0,
+    "preapproval_on_file": 0
+   },
+   "situation": {
+    "claim_amount_band": "small enough to be petty cash",
+    "receipt_present": "an itemized receipt is attached",
+    "policy_category": "travel and meals",
+    "past_claim_pattern": "no earlier claims on file",
+    "preapproval_on_file": "no advance approval on record"
+   },
+   "choice": "auto_approve",
+   "why": ""
+  },
+  {
+   "given": {
+    "claim_amount_band": 0,
+    "receipt_present": 1,
+    "policy_category": 1,
+    "past_claim_pattern": 0,
+    "preapproval_on_file": 0
+   },
+   "situation": {
+    "claim_amount_band": "small enough to be petty cash",
+    "receipt_present": "an itemized receipt is attached",
+    "policy_category": "office supplies and equipment",
+    "past_claim_pattern": "no earlier claims on file",
+    "preapproval_on_file": "no advance approval on record"
+   },
+   "choice": "auto_approve",
+   "why": ""
+  },
+  {
+   "given": {
+    "claim_amount_band": 1,
+    "receipt_present": 1,
+    "policy_category": 1,
+    "past_claim_pattern": 0,
+    "preapproval_on_file": 0
+   },
+   "situation": {
+    "claim_amount_band": "a routine modest sum",
+    "receipt_present": "an itemized receipt is attached",
+    "policy_category": "office supplies and equipment",
+    "past_claim_pattern": "no earlier claims on file",
+    "preapproval_on_file": "no advance approval on record"
+   },
+   "choice": "auto_approve",
+   "why": ""
+  },
+  {
+   "given": {
+    "claim_amount_band": 0,
+    "receipt_present": 1,
+    "policy_category": 0,
+    "past_claim_pattern": 2,
+    "preapproval_on_file": 0
+   },
+   "situation": {
+    "claim_amount_band": "small enough to be petty cash",
+    "receipt_present": "an itemized receipt is attached",
+    "policy_category": "travel and meals",
+    "past_claim_pattern": "earlier claims were sometimes sent back",
+    "preapproval_on_file": "no advance approval on record"
+   },
+   "why": "",
+   "allow": [
+    "auto_approve",
+    "send_to_manager"
+   ]
+  },
+  {
+   "given": {
+    "claim_amount_band": 1,
+    "receipt_present": 0,
+    "policy_category": 1,
+    "past_claim_pattern": 3,
+    "preapproval_on_file": 0
+   },
+   "situation": {
+    "claim_amount_band": "a routine modest sum",
+    "receipt_present": "no receipt attached",
+    "policy_category": "office supplies and equipment",
+    "past_claim_pattern": "earlier claims were often denied or flagged",
+    "preapproval_on_file": "no advance approval on record"
+   },
+   "choice": "send_to_manager",
+   "why": ""
+  },
+  {
+   "given": {
+    "claim_amount_band": 1,
+    "receipt_present": 0,
+    "policy_category": 2,
+    "past_claim_pattern": 0,
+    "preapproval_on_file": 1
+   },
+   "situation": {
+    "claim_amount_band": "a routine modest sum",
+    "receipt_present": "no receipt attached",
+    "policy_category": "client entertainment",
+    "past_claim_pattern": "no earlier claims on file",
+    "preapproval_on_file": "a manager approved this spend in advance"
+   },
+   "choice": "send_to_manager",
+   "why": ""
+  },
+  {
+   "given": {
+    "claim_amount_band": 2,
+    "receipt_present": 1,
+    "policy_category": 0,
+    "past_claim_pattern": 1,
+    "preapproval_on_file": 1
+   },
+   "situation": {
+    "claim_amount_band": "a large sum worth a careful look",
+    "receipt_present": "an itemized receipt is attached",
+    "policy_category": "travel and meals",
+    "past_claim_pattern": "earlier claims were almost always approved",
+    "preapproval_on_file": "a manager approved this spend in advance"
+   },
+   "why": "",
+   "allow": [
+    "send_to_manager",
+    "auto_approve"
+   ]
+  },
+  {
+   "given": {
+    "claim_amount_band": 2,
+    "receipt_present": 1,
+    "policy_category": 1,
+    "past_claim_pattern": 1,
+    "preapproval_on_file": 1
+   },
+   "situation": {
+    "claim_amount_band": "a large sum worth a careful look",
+    "receipt_present": "an itemized receipt is attached",
+    "policy_category": "office supplies and equipment",
+    "past_claim_pattern": "earlier claims were almost always approved",
+    "preapproval_on_file": "a manager approved this spend in advance"
+   },
+   "why": "",
+   "allow": [
+    "send_to_manager",
+    "auto_approve"
+   ]
+  },
+  {
+   "given": {
+    "claim_amount_band": 3,
+    "receipt_present": 1,
+    "policy_category": 1,
+    "past_claim_pattern": 1,
+    "preapproval_on_file": 1
+   },
+   "situation": {
+    "claim_amount_band": "a very large sum that normally needs sign-off",
+    "receipt_present": "an itemized receipt is attached",
+    "policy_category": "office supplies and equipment",
+    "past_claim_pattern": "earlier claims were almost always approved",
+    "preapproval_on_file": "a manager approved this spend in advance"
+   },
+   "choice": "send_to_manager",
+   "why": ""
+  },
+  {
+   "given": {
+    "claim_amount_band": 1,
+    "receipt_present": 0,
+    "policy_category": 2,
+    "past_claim_pattern": 1,
+    "preapproval_on_file": 1
+   },
+   "situation": {
+    "claim_amount_band": "a routine modest sum",
+    "receipt_present": "no receipt attached",
+    "policy_category": "client entertainment",
+    "past_claim_pattern": "earlier claims were almost always approved",
+    "preapproval_on_file": "a manager approved this spend in advance"
+   },
+   "choice": "send_to_manager",
+   "why": ""
+  },
+  {
+   "given": {
+    "claim_amount_band": 0,
+    "receipt_present": 1,
+    "policy_category": 2,
+    "past_claim_pattern": 1,
+    "preapproval_on_file": 1
+   },
+   "situation": {
+    "claim_amount_band": "small enough to be petty cash",
+    "receipt_present": "an itemized receipt is attached",
+    "policy_category": "client entertainment",
+    "past_claim_pattern": "earlier claims were almost always approved",
+    "preapproval_on_file": "a manager approved this spend in advance"
+   },
+   "choice": "auto_approve",
+   "why": ""
+  },
+  {
+   "given": {
+    "claim_amount_band": 3,
+    "receipt_present": 1,
+    "policy_category": 2,
+    "past_claim_pattern": 1,
+    "preapproval_on_file": 1
+   },
+   "situation": {
+    "claim_amount_band": "a very large sum that normally needs sign-off",
+    "receipt_present": "an itemized receipt is attached",
+    "policy_category": "client entertainment",
+    "past_claim_pattern": "earlier claims were almost always approved",
+    "preapproval_on_file": "a manager approved this spend in advance"
+   },
+   "choice": "send_to_manager",
+   "why": ""
+  },
+  {
+   "given": {
+    "claim_amount_band": 1,
+    "receipt_present": 0,
+    "policy_category": 3,
+    "past_claim_pattern": 1,
+    "preapproval_on_file": 1
+   },
+   "situation": {
+    "claim_amount_band": "a routine modest sum",
+    "receipt_present": "no receipt attached",
+    "policy_category": "training and conferences",
+    "past_claim_pattern": "earlier claims were almost always approved",
+    "preapproval_on_file": "a manager approved this spend in advance"
+   },
+   "choice": "send_to_manager",
+   "why": ""
+  },
+  {
+   "given": {
+    "claim_amount_band": 2,
+    "receipt_present": 0,
+    "policy_category": 0,
+    "past_claim_pattern": 2,
+    "preapproval_on_file": 1
+   },
+   "situation": {
+    "claim_amount_band": "a large sum worth a careful look",
+    "receipt_present": "no receipt attached",
+    "policy_category": "travel and meals",
+    "past_claim_pattern": "earlier claims were sometimes sent back",
+    "preapproval_on_file": "a manager approved this spend in advance"
+   },
+   "choice": "send_to_manager",
+   "why": ""
+  },
+  {
+   "given": {
+    "claim_amount_band": 2,
+    "receipt_present": 0,
+    "policy_category": 1,
+    "past_claim_pattern": 2,
+    "preapproval_on_file": 1
+   },
+   "situation": {
+    "claim_amount_band": "a large sum worth a careful look",
+    "receipt_present": "no receipt attached",
+    "policy_category": "office supplies and equipment",
+    "past_claim_pattern": "earlier claims were sometimes sent back",
+    "preapproval_on_file": "a manager approved this spend in advance"
+   },
+   "choice": "send_to_manager",
+   "why": ""
+  },
+  {
+   "given": {
+    "claim_amount_band": 0,
+    "receipt_present": 0,
+    "policy_category": 3,
+    "past_claim_pattern": 2,
+    "preapproval_on_file": 1
+   },
+   "situation": {
+    "claim_amount_band": "small enough to be petty cash",
+    "receipt_present": "no receipt attached",
+    "policy_category": "training and conferences",
+    "past_claim_pattern": "earlier claims were sometimes sent back",
+    "preapproval_on_file": "a manager approved this spend in advance"
+   },
+   "why": "",
+   "allow": [
+    "send_to_manager",
+    "auto_approve"
+   ]
+  },
+  {
+   "given": {
+    "claim_amount_band": 0,
+    "receipt_present": 1,
+    "policy_category": 3,
+    "past_claim_pattern": 2,
+    "preapproval_on_file": 1
+   },
+   "situation": {
+    "claim_amount_band": "small enough to be petty cash",
+    "receipt_present": "an itemized receipt is attached",
+    "policy_category": "training and conferences",
+    "past_claim_pattern": "earlier claims were sometimes sent back",
+    "preapproval_on_file": "a manager approved this spend in advance"
+   },
+   "why": "",
+   "allow": [
+    "auto_approve",
+    "send_to_manager"
+   ]
+  },
+  {
+   "given": {
+    "claim_amount_band": 2,
+    "receipt_present": 1,
+    "policy_category": 3,
+    "past_claim_pattern": 2,
+    "preapproval_on_file": 1
+   },
+   "situation": {
+    "claim_amount_band": "a large sum worth a careful look",
+    "receipt_present": "an itemized receipt is attached",
+    "policy_category": "training and conferences",
+    "past_claim_pattern": "earlier claims were sometimes sent back",
+    "preapproval_on_file": "a manager approved this spend in advance"
+   },
+   "choice": "send_to_manager",
+   "why": ""
+  },
+  {
+   "given": {
+    "claim_amount_band": 1,
+    "receipt_present": 0,
+    "policy_category": 1,
+    "past_claim_pattern": 3,
+    "preapproval_on_file": 1
+   },
+   "situation": {
+    "claim_amount_band": "a routine modest sum",
+    "receipt_present": "no receipt attached",
+    "policy_category": "office supplies and equipment",
+    "past_claim_pattern": "earlier claims were often denied or flagged",
+    "preapproval_on_file": "a manager approved this spend in advance"
+   },
+   "choice": "send_to_manager",
+   "why": ""
+  },
+  {
+   "given": {
+    "claim_amount_band": 2,
+    "receipt_present": 1,
+    "policy_category": 3,
+    "past_claim_pattern": 3,
+    "preapproval_on_file": 1
+   },
+   "situation": {
+    "claim_amount_band": "a large sum worth a careful look",
+    "receipt_present": "an itemized receipt is attached",
+    "policy_category": "training and conferences",
+    "past_claim_pattern": "earlier claims were often denied or flagged",
+    "preapproval_on_file": "a manager approved this spend in advance"
+   },
+   "choice": "send_to_manager",
+   "why": ""
+  }
+ ]
+}

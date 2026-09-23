@@ -1,0 +1,63 @@
+{
+  "_": "Drafted by `decide.mjs draft` from one sentence on 2026-09-21, then taken through the whole flow from a fresh clone: filled by the decision model, frozen at 64 NAND with all 256 rows proven, proven again by Yosys, twenty anchors answered blind, calibrated to delegate at threshold 0.3, and exported as a 4 KB module that matches the simulated gates on all 256 rows. Note what the read-back flagged: every field uses all of its codes, so no code is illegal and no row fails closed on an unknown bucket.",
+  "name": "expense-auto-approval",
+  "scene": "The system triages incoming employee expense claims and decides which ones can be paid automatically without a human ever looking at them. Auto-approving a claim that deserved review leaks money and rewards abuse, while sending a clean claim to a manager slows the employee's reimbursement and burns review time; rejecting a valid claim unfairly denies the employee money they are owed.",
+  "question": "Should this expense claim be paid automatically, sent to a manager for review, or rejected outright?",
+  "observe": {
+    "claim_amount_band": {
+      "width": 2,
+      "raw": "the claim total is dropped into one of four fixed dollar bands set by company policy",
+      "values": {
+        "0": "small enough to be petty cash",
+        "1": "a routine modest sum",
+        "2": "a large sum worth a careful look",
+        "3": "a very large sum that normally needs sign-off"
+      }
+    },
+    "receipt_present": {
+      "width": 1,
+      "raw": "whether any receipt image or attachment is filed with the claim",
+      "values": {
+        "0": "no receipt attached",
+        "1": "an itemized receipt is attached"
+      }
+    },
+    "policy_category": {
+      "width": 2,
+      "raw": "the expense type the claimant selected from the fixed category list",
+      "values": {
+        "0": "travel and meals",
+        "1": "office supplies and equipment",
+        "2": "client entertainment",
+        "3": "training and conferences"
+      }
+    },
+    "past_claim_pattern": {
+      "width": 2,
+      "raw": "the share of this claimant's earlier claims that were approved, bucketed into four fixed ranges",
+      "values": {
+        "0": "no earlier claims on file",
+        "1": "earlier claims were almost always approved",
+        "2": "earlier claims were sometimes sent back",
+        "3": "earlier claims were often denied or flagged"
+      }
+    },
+    "preapproval_on_file": {
+      "width": 1,
+      "raw": "whether a manager approval record exists for this spend before it was incurred",
+      "values": {
+        "0": "no advance approval on record",
+        "1": "a manager approved this spend in advance"
+      }
+    }
+  },
+  "act": {
+    "choices": {
+      "auto_approve": "pay the claim automatically with no human review",
+      "send_to_manager": "route the claim to the claimant's manager for a decision",
+      "reject": "deny the claim and ask the claimant to resubmit"
+    },
+    "safe": "send_to_manager"
+  },
+  "threshold": 0.7
+}

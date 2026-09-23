@@ -1,0 +1,31 @@
+{
+  "_": "Written 2026-09-20 while the fill was still running and before a single answer of it had been looked at, so this set is pre-registered in full - unlike comment-hold's, where two were revised afterwards. These are the requests this shop's owner would not argue about; the boundary is deliberately left out, because the boundary is the decision. 'allow' names the answers that are defensible, so anything outside that set is wrong.",
+  "decision": "refund-call",
+  "anchors": [
+    { "given": { "age": 0, "condition": 0, "reason": 0, "history": 0, "price": 0 }, "choice": "refund", "why": "arrived broken, still sealed, reported at once" },
+    { "given": { "age": 0, "condition": 0, "reason": 0, "history": 0, "price": 1 }, "choice": "refund", "why": "same, and the price does not change it" },
+    { "given": { "age": 0, "condition": 1, "reason": 0, "history": 0, "price": 0 }, "choice": "refund", "why": "you have to open a box to find out it is broken" },
+    { "given": { "age": 1, "condition": 0, "reason": 0, "history": 0, "price": 0 }, "choice": "refund", "why": "arrived broken, reported within two weeks" },
+    { "given": { "age": 1, "condition": 1, "reason": 0, "history": 0, "price": 0 }, "choice": "refund", "why": "same, opened to discover it" },
+
+    { "given": { "age": 0, "condition": 0, "reason": 1, "history": 0, "price": 0 }, "choice": "refund", "why": "not as described, unopened, straight away" },
+    { "given": { "age": 0, "condition": 1, "reason": 1, "history": 0, "price": 0 }, "choice": "refund", "why": "you have to open it to see it is not what was described" },
+    { "given": { "age": 1, "condition": 0, "reason": 1, "history": 0, "price": 0 }, "choice": "refund", "why": "same, within two weeks" },
+
+    { "given": { "age": 0, "condition": 0, "reason": 2, "history": 0, "price": 0 }, "choice": "refund", "why": "changed their mind, sealed, immediately - this is what a returns window is" },
+    { "given": { "age": 0, "condition": 0, "reason": 2, "history": 0, "price": 1 }, "choice": "refund", "why": "same, and an expensive sealed item is the easiest of all to resell" },
+
+    { "given": { "age": 2, "condition": 2, "reason": 2, "history": 1, "price": 0 }, "choice": "deny", "why": "used for a month, changed their mind, and asks every time" },
+    { "given": { "age": 2, "condition": 2, "reason": 2, "history": 1, "price": 1 }, "choice": "deny", "why": "same, and the size of it is the reason to hold the line" },
+
+    { "given": { "age": 2, "condition": 2, "reason": 2, "history": 0, "price": 0 }, "allow": ["deny", "partial"], "why": "used for a month and simply changed their mind - full refund is not owed" },
+    { "given": { "age": 2, "condition": 2, "reason": 2, "history": 0, "price": 1 }, "allow": ["deny", "partial"], "why": "same, expensive" },
+    { "given": { "age": 2, "condition": 1, "reason": 2, "history": 1, "price": 0 }, "allow": ["deny", "partial"], "why": "a month on, unused but opened, changed their mind, asks often" },
+    { "given": { "age": 0, "condition": 2, "reason": 2, "history": 0, "price": 0 }, "allow": ["deny", "partial"], "why": "used it, then changed their mind - quick about it, but it is used" },
+
+    { "given": { "age": 0, "condition": 0, "reason": 0, "history": 1, "price": 0 }, "allow": ["partial", "refund"], "why": "asking often is not a reason to keep the money for something that arrived broken" },
+    { "given": { "age": 0, "condition": 1, "reason": 0, "history": 1, "price": 0 }, "allow": ["partial", "refund"], "why": "same, opened to find the damage" },
+    { "given": { "age": 1, "condition": 1, "reason": 1, "history": 0, "price": 1 }, "allow": ["partial", "refund"], "why": "expensive, not as described, unused, within two weeks" },
+    { "given": { "age": 2, "condition": 0, "reason": 0, "history": 0, "price": 0 }, "allow": ["partial", "refund"], "why": "never opened, and it was broken in the box - late, but not their doing" }
+  ]
+}

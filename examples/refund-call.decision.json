@@ -1,0 +1,42 @@
+{
+  "_": "The second of two decisions authored from scratch on 2026-09-20 to find where writing a codebook is awkward. A small shop: the storefront, the payment rails and the emails stay ordinary code; only 'what do we do about this refund request' goes through a proven circuit. Bucketing an order into the codes below is the shop's job. Three fields have three legal values in two bits, so code 3 in any of them is illegal and the circuit answers it with deny + review = 1 by construction - which for this decision means a person looks, NOT that the customer is refused.",
+  "name": "refund-call",
+  "scene": "A small online shop. A customer has asked for their money back. The shop can refund in full, offer a partial refund, or decline and explain why. Refunding money cannot be undone; declining costs goodwill and sometimes a public complaint. The shop would rather keep customers than win arguments, but cannot afford to refund everything.",
+  "question": "What should the shop do about this refund request?",
+  "observe": {
+    "age": {
+      "width": 2,
+      "raw": "how long ago the order arrived; there is no code 3",
+      "values": { "0": "it arrived in the last few days", "1": "it arrived within the last two weeks", "2": "it arrived a month or more ago" }
+    },
+    "condition": {
+      "width": 2,
+      "raw": "what state the goods are in now; there is no code 3",
+      "values": { "0": "unopened, still sealed", "1": "opened but unused", "2": "used, with visible wear" }
+    },
+    "reason": {
+      "width": 2,
+      "raw": "why the customer says they want their money back; there is no code 3",
+      "values": { "0": "it arrived broken", "1": "it does not match how it was described", "2": "they simply changed their mind" }
+    },
+    "history": {
+      "width": 1,
+      "raw": "1 when this customer has asked for refunds repeatedly before",
+      "values": { "0": "a first refund request from this customer", "1": "a customer who asks for refunds often" }
+    },
+    "price": {
+      "width": 1,
+      "raw": "1 when the order is large enough that the shop feels it",
+      "values": { "0": "a small order", "1": "an expensive order" }
+    }
+  },
+  "act": {
+    "choices": {
+      "deny": "decline, and explain why",
+      "partial": "offer part of the money back",
+      "refund": "refund in full"
+    },
+    "safe": "deny"
+  },
+  "threshold": 0.7
+}

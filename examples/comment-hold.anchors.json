@@ -1,0 +1,312 @@
+{
+  "_": "Written before a single situation was asked of any model, 2026-09-20. These are the cases where this forum's moderators would not argue. They are not a rule and they do not cover the boundary - the boundary is the whole point of the decision. They exist so that a scene rewritten to chase a smaller review list cannot quietly wreck the answers: a scene that says 'be decisive' shows up here first. An anchor gives either one choice or the set of choices that are defensible; 'allow' means anything outside that set is wrong, not that the listed ones are equally right. PROVENANCE: 23 of the 25 are as first written. TWO were revised later the same day, AFTER seeing that both independent fills answered them differently - the person read the disagreement and accepted the model's stricter reading rather than overriding it. Those two carry a 'revised' field. They are therefore NOT pre-registered, and any measurement that leans on this set - the scene loop's accept test above all - has to say so: 23 anchors can catch a scene that drifts, two of them already agree with one model's answers and cannot.",
+  "decision": "comment-hold",
+  "anchors": [
+    {
+      "given": {
+        "tone": 0,
+        "target": 0,
+        "provoked": 0,
+        "history": 1,
+        "stakes": 0
+      },
+      "choice": "keep",
+      "why": "a calm comment aimed at nobody from a member in good standing"
+    },
+    {
+      "given": {
+        "tone": 0,
+        "target": 1,
+        "provoked": 0,
+        "history": 1,
+        "stakes": 0
+      },
+      "choice": "keep",
+      "why": "calmly disagreeing with an argument is the forum working"
+    },
+    {
+      "given": {
+        "tone": 0,
+        "target": 1,
+        "provoked": 1,
+        "history": 1,
+        "stakes": 0
+      },
+      "choice": "keep",
+      "why": "answering an attack calmly, on the argument"
+    },
+    {
+      "given": {
+        "tone": 0,
+        "target": 0,
+        "provoked": 0,
+        "history": 0,
+        "stakes": 0
+      },
+      "choice": "keep",
+      "why": "a new account is not itself a reason to act"
+    },
+    {
+      "given": {
+        "tone": 0,
+        "target": 1,
+        "provoked": 0,
+        "history": 0,
+        "stakes": 0
+      },
+      "choice": "keep",
+      "why": "new account, calm, on the argument"
+    },
+    {
+      "given": {
+        "tone": 0,
+        "target": 0,
+        "provoked": 1,
+        "history": 2,
+        "stakes": 0
+      },
+      "choice": "keep",
+      "why": "a prior strike does not make a calm comment actionable"
+    },
+    {
+      "given": {
+        "tone": 0,
+        "target": 1,
+        "provoked": 0,
+        "history": 2,
+        "stakes": 0
+      },
+      "choice": "keep",
+      "why": "same, aimed at an argument"
+    },
+    {
+      "given": {
+        "tone": 0,
+        "target": 2,
+        "provoked": 0,
+        "history": 1,
+        "stakes": 0
+      },
+      "choice": "fold",
+      "why": "revised 2026-09-20 after the fill disagreed: the person accepted the model's stricter reading",
+      "revised": {
+        "from": "keep",
+        "when": "2026-09-20",
+        "reason": "both chat-model fills answered fold here; the person agreed rather than overriding"
+      }
+    },
+    {
+      "given": {
+        "tone": 0,
+        "target": 0,
+        "provoked": 0,
+        "history": 1,
+        "stakes": 1
+      },
+      "choice": "keep",
+      "why": "moderation is not fact-checking; calm advice is not removed for being risky"
+    },
+    {
+      "given": {
+        "tone": 0,
+        "target": 1,
+        "provoked": 1,
+        "history": 0,
+        "stakes": 0
+      },
+      "choice": "keep",
+      "why": "attacked first, answered calmly, new account"
+    },
+    {
+      "given": {
+        "tone": 2,
+        "target": 2,
+        "provoked": 0,
+        "history": 0,
+        "stakes": 0
+      },
+      "choice": "remove",
+      "why": "unprompted abuse of a named person"
+    },
+    {
+      "given": {
+        "tone": 2,
+        "target": 2,
+        "provoked": 0,
+        "history": 1,
+        "stakes": 0
+      },
+      "choice": "remove",
+      "why": "standing does not buy unprompted abuse of a person"
+    },
+    {
+      "given": {
+        "tone": 2,
+        "target": 2,
+        "provoked": 0,
+        "history": 2,
+        "stakes": 0
+      },
+      "choice": "remove",
+      "why": "unprompted abuse of a person, and it is not the first time"
+    },
+    {
+      "given": {
+        "tone": 2,
+        "target": 2,
+        "provoked": 0,
+        "history": 2,
+        "stakes": 1
+      },
+      "choice": "remove",
+      "why": "same, with something at stake for readers"
+    },
+    {
+      "given": {
+        "tone": 2,
+        "target": 2,
+        "provoked": 0,
+        "history": 0,
+        "stakes": 1
+      },
+      "choice": "remove",
+      "why": "same, new account"
+    },
+    {
+      "given": {
+        "tone": 2,
+        "target": 1,
+        "provoked": 0,
+        "history": 0,
+        "stakes": 0
+      },
+      "allow": [
+        "fold",
+        "remove"
+      ],
+      "why": "abusive language stays out of everyone's face even when aimed at an argument"
+    },
+    {
+      "given": {
+        "tone": 2,
+        "target": 0,
+        "provoked": 0,
+        "history": 2,
+        "stakes": 0
+      },
+      "allow": [
+        "fold",
+        "remove"
+      ],
+      "why": "abuse at nobody, from someone already moderated once"
+    },
+    {
+      "given": {
+        "tone": 2,
+        "target": 1,
+        "provoked": 1,
+        "history": 1,
+        "stakes": 0
+      },
+      "allow": [
+        "fold",
+        "remove"
+      ],
+      "why": "being attacked first explains abuse, it does not make it publishable"
+    },
+    {
+      "given": {
+        "tone": 2,
+        "target": 0,
+        "provoked": 1,
+        "history": 1,
+        "stakes": 0
+      },
+      "allow": [
+        "fold",
+        "remove"
+      ],
+      "why": "same, aimed at nobody"
+    },
+    {
+      "given": {
+        "tone": 2,
+        "target": 2,
+        "provoked": 1,
+        "history": 0,
+        "stakes": 0
+      },
+      "allow": [
+        "fold",
+        "remove"
+      ],
+      "why": "provocation is not a licence to abuse a person"
+    },
+    {
+      "given": {
+        "tone": 1,
+        "target": 2,
+        "provoked": 0,
+        "history": 0,
+        "stakes": 0
+      },
+      "allow": [
+        "fold",
+        "remove"
+      ],
+      "why": "unprompted mockery of a particular person is what drives people away"
+    },
+    {
+      "given": {
+        "tone": 1,
+        "target": 2,
+        "provoked": 0,
+        "history": 2,
+        "stakes": 0
+      },
+      "allow": [
+        "fold",
+        "remove"
+      ],
+      "why": "same, and it is not the first time"
+    },
+    {
+      "given": {
+        "tone": 1,
+        "target": 1,
+        "provoked": 0,
+        "history": 1,
+        "stakes": 0
+      },
+      "choice": "fold",
+      "why": "revised 2026-09-20 after the fill disagreed: the person accepted the model's stricter reading",
+      "revised": {
+        "from": "keep",
+        "when": "2026-09-20",
+        "reason": "both chat-model fills answered fold here; the person agreed rather than overriding"
+      }
+    },
+    {
+      "given": {
+        "tone": 1,
+        "target": 0,
+        "provoked": 0,
+        "history": 1,
+        "stakes": 0
+      },
+      "choice": "keep",
+      "why": "sarcasm aimed at nobody"
+    },
+    {
+      "given": {
+        "tone": 1,
+        "target": 1,
+        "provoked": 1,
+        "history": 1,
+        "stakes": 0
+      },
+      "choice": "keep",
+      "why": "answering an attack with sarcasm about the argument"
+    }
+  ]
+}

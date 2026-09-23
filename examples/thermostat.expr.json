@@ -1,0 +1,14 @@
+{
+  "inputs": {"temp": 7, "target": 7, "heating": 1},
+  "let": {"cold": "temp + 2 < target", "warm": "temp > target + 1"},
+  "outputs": {
+    "heat": {"width": 1, "expr": "cold || (heating && !warm)"},
+    "error": {"width": 7, "expr": "temp > target ? temp - target : target - temp"}
+  },
+  "examples": [
+    {"given": {"temp": 18, "target": 22, "heating": 0}, "expect": {"heat": 1, "error": 4}},
+    {"given": {"temp": 22, "target": 22, "heating": 1}, "expect": {"heat": 1, "error": 0}},
+    {"given": {"temp": 24, "target": 22, "heating": 1}, "expect": {"heat": 0, "error": 2}},
+    {"given": {"temp": 21, "target": 22, "heating": 0}, "expect": {"heat": 0, "error": 1}}
+  ]
+}

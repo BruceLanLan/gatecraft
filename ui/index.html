@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gatecraft</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+<script type="module" src="app.mjs"></script>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 34 24" aria-hidden="true"><path d="M3 3h12a9 9 0 0 1 0 18H3z"/><circle cx="28" cy="12" r="3"/></svg>
+    <span class="wordmark">gatecraft</span>
+    <span class="tagline" data-i18n="tagline"></span>
+  </div>
+  <nav class="stepper" id="stepper" data-i18n-label="stepsLabel"></nav>
+  <div class="head-tools">
+    <button type="button" class="pill" id="model-button"></button>
+    <button type="button" class="pill ghost" id="decide-switch"></button>
+    <button type="button" class="pill ghost" id="gallery-switch"></button>
+    <button type="button" class="pill ghost" id="view-switch"></button>
+    <a class="pill ghost api-pill" id="api-pill" href="/api" hidden></a>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="zh">中文</button>
+      <button type="button" data-lang="en">EN</button>
+    </div>
+  </div>
+</header>
+<section class="settings" id="settings" hidden></section>
+<main class="flow" id="flow"></main>
+<main class="flow" id="gallery" hidden></main>
+<main class="flow" id="decide" hidden></main>
+<main class="layout" id="workbench" hidden>
+  <section class="card" id="describe">
+    <h2 class="step"><span class="num">1</span><span data-i18n="stepDescribe"></span></h2>
+    <nav class="tabs" id="tabs" role="tablist"></nav>
+    <div id="editor"></div>
+  </section>
+  <section class="card" id="prove">
+    <h2 class="step"><span class="num">2</span><span data-i18n="stepProve"></span></h2>
+    <div id="compile-bar"></div>
+    <div id="proof"></div>
+  </section>
+  <section class="card span" id="circuit-section" hidden>
+    <h2 class="step"><span class="num">3</span><span data-i18n="stepTry"></span></h2>
+    <div id="circuit"></div>
+  </section>
+  <section class="card span" id="tapeout-section" hidden>
+    <h2 class="step"><span class="num">4</span><span data-i18n="stepTapeout"></span></h2>
+    <div id="tapeout"></div>
+  </section>
+</main>
+<footer class="foot"><span data-i18n="footer"></span> <span class="build mono"></span></footer>
+<noscript><p class="foot">gatecraft needs JavaScript.</p></noscript>
+</body>
+</html>

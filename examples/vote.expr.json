@@ -1,0 +1,12 @@
+{
+  "inputs": {"a": 1, "b": 1, "c": 1},
+  "outputs": {
+    "pass": {"width": 1, "expr": "a + b + c >= 2"}
+  },
+  "examples": [
+    {"given": {"a": 1, "b": 1, "c": 0}, "expect": {"pass": 1}},
+    {"given": {"a": 1, "b": 0, "c": 0}, "expect": {"pass": 0}},
+    {"given": {"a": 0, "b": 0, "c": 0}, "expect": {"pass": 0}},
+    {"given": {"a": 1, "b": 1, "c": 1}, "expect": {"pass": 1}}
+  ]
+}

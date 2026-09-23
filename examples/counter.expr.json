@@ -1,0 +1,13 @@
+{
+  "inputs": {"press": 1},
+  "state": {"count": {"width": 4, "next": "press ? (count == 9 ? 0 : count + 1) : count"}},
+  "outputs": {
+    "digit": {"width": 4, "expr": "count"},
+    "nine": {"width": 1, "expr": "count == 9"}
+  },
+  "examples": [
+    {"given": {"press": 1, "count": 0}, "expect": {"digit": 0, "nine": 0}, "then": {"count": 1}},
+    {"given": {"press": 0, "count": 5}, "expect": {"digit": 5}, "then": {"count": 5}},
+    {"given": {"press": 1, "count": 9}, "expect": {"digit": 9, "nine": 1}, "then": {"count": 0}}
+  ]
+}

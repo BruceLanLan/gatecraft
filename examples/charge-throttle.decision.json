@@ -1,0 +1,43 @@
+{
+  "_": "Written 2026-09-20 as one of two decisions authored from scratch to find out where writing a codebook is awkward - the one step of this pipeline with no tooling and no measurement. A battery charger: the charging loop, the sensors and the UI stay ordinary firmware; only 'how hard should we push charge right now' goes through a proven circuit. Bucketing sensor readings into the codes below is the firmware's job and is not proven here. cycles has three legal values in two bits, so code 3 is illegal and the circuit answers it with stop + review = 1 by construction.",
+  "name": "charge-throttle",
+  "scene": "A battery charger in a handheld device. It can push full current, drop to a slow trickle, or stop charging altogether. Heat and swelling damage cells permanently and can be dangerous; charging slowly is always safe but takes longer; stopping means the device does not charge at all.",
+  "question": "How hard should the charger push right now?",
+  "observe": {
+    "temp": {
+      "width": 2,
+      "raw": "cell temperature bucketed by the firmware",
+      "values": { "0": "cool, under 25C", "1": "warm, 25 to 35C", "2": "hot, 35 to 45C", "3": "very hot, over 45C" }
+    },
+    "soc": {
+      "width": 2,
+      "raw": "state of charge bucketed by the firmware",
+      "values": { "0": "nearly empty, under 20%", "1": "20 to 60% charged", "2": "60 to 85% charged", "3": "nearly full, over 85%" }
+    },
+    "cable": {
+      "width": 1,
+      "raw": "1 when the cable identified itself as a rated fast-charge cable",
+      "values": { "0": "an ordinary cable of unknown rating", "1": "a cable rated for fast charging" }
+    },
+    "cycles": {
+      "width": 2,
+      "raw": "how worn the cell is, bucketed from the charge-cycle count; there is no code 3",
+      "values": { "0": "a new cell", "1": "a cell with some wear", "2": "a worn cell near the end of its life" }
+    },
+    "swelling": {
+      "width": 1,
+      "raw": "1 when the pack sensor reports deformation",
+      "values": { "0": "the pack looks normal", "1": "the pack is swollen or deformed" }
+    }
+  },
+  "act": {
+    "choices": {
+      "stop": "stop charging",
+      "slow": "charge at a slow trickle",
+      "full": "charge at full current"
+    },
+    "safe": "stop"
+  },
+  "threshold": 0.7,
+  "rule": "swelling == 1 || temp == 3 ? stop : (temp == 2 || soc == 3 || cable == 0 || cycles == 2 ? slow : full)"
+}

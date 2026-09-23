@@ -1,0 +1,6 @@
+# The gatecraft bundle patch: inserts the plugin row over the profile root. The plugin gives
+# the agent gatecraft_compile / gatecraft_check / gatecraft_simulate and serves the gatecraft
+# page and local API under /gatecraft/ on the harness's own web address.
+- insert:
+    - id: dsh-gatecraft
+      name: dsh-gatecraft
