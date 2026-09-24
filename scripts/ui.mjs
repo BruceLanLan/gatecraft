@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // ui: serve the browser interface on this machine and print its address.
 import { homedir } from "node:os";
 import { parseArgs } from "node:util";

@@ -3,6 +3,12 @@
   "version": "0.7.0",
   "private": true,
   "type": "module",
+  "bin": {
+    "gatecraft": "scripts/ui.mjs",
+    "gatecraft-mcp": "scripts/mcp.mjs",
+    "gatecraft-decide": "scripts/decide.mjs"
+  },
+  "engines": { "node": ">=20" },
   "description": "Freeze one small, repeated decision into a table proven on every row, checked against a person, and exported as a dependency-free module.",
   "scripts": {
     "setup": "node tools/setup.mjs",
