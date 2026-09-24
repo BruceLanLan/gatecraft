@@ -98,3 +98,14 @@ test("a bucket that names no source is asked where its value comes from", () => 
   assert.equal(notes.filter((n) => /far side of the wall/.test(n.says)).length, 0, "vague is not the same accusation as crossing the wall");
   assert.equal(reviewDraft(charger).notes.filter((n) => n.kind === "vague").length, 0, "real sensor readings are not vague");
 });
+
+// Seen in a real agent's first draft: an HTTP status the client already has was flagged as a call.
+test("a value the program already holds is not a call out just for mentioning HTTP or an API", () => {
+  const draft = structuredClone(charger);
+  const [first, second, third] = Object.keys(draft.observe);
+  draft.observe[first].raw = "error.status from the HTTP client, bucketed: 5xx -> 1, 429 -> 3";
+  draft.observe[second].raw = "the status code in the API response we already received";
+  draft.observe[third].raw = "the current exchange rate, looked up in the pricing service";
+  const across = reviewDraft(draft).notes.filter((n) => /far side of the wall/.test(n.says)).map((n) => n.about);
+  assert.deepEqual(across, [third], "only the lookup is a call out");
+});

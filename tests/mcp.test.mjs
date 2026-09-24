@@ -129,6 +129,7 @@ test("an agent can fill a decision with its own answers, and an agent's anchors 
     const filled = await mcp.callTool("gatecraft_decision_fill", { spec, with: "answers", answers });
     assert.ok(!filled.isError, filled.content[0].text);
     assert.equal(filled.structuredContent.answered, 191);
+    assert.match(filled.content[0].text, /191 situations had a single answer/, "a stated confidence is called what it is");
     assert.equal(filled.structuredContent.failed, 1);
     const missing = await mcp.callTool("gatecraft_decision_decide", { bundle: filled.structuredContent.bundle, codes: listed.structuredContent.situations[0].given });
     assert.equal(missing.structuredContent.review, true, "a situation nobody answered is handed to a person");

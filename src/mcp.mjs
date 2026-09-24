@@ -263,6 +263,7 @@ export function createGatecraftMcp({ outRoot = resolve("gatecraft-out"), key = (
       } else throw new ToolError(`with must be rule, answers or jev, not ${JSON.stringify(source)}`);
 
       const fill = await fillDecision(d, filler);
+      const selfReported = source === "answers" ? fill.rows.filter((r) => r?.source === "agent" && !r.asks).length : 0;
       const dir = join(root, d.name);
       mkdirSync(dir, { recursive: true });
       const frozen = freezeDecision(d, fill);
@@ -285,6 +286,7 @@ export function createGatecraftMcp({ outRoot = resolve("gatecraft-out"), key = (
           `Circuit: ${c.circuit.nand} NAND, proven equal to the table on all ${c.verification.rowsChecked} rows; second proof: ${second}. ${review} rows hand the case to a person.`,
           `The proof relates the circuit to the table and says nothing about whether the table is the policy the person wants. Next: gatecraft_decision_anchors, and put those questions to the person.`,
           free ? `This used one of the free fills (${free.left} of ${free.limit} left for this address). After that, fill with the person's own model (with="answers"), a rule, or their own key.` : null,
+          selfReported ? `Note: ${selfReported} situations had a single answer, so their confidence is the number you stated - measured to say little about whether an answer holds. For a confidence that means something, answer each situation three times and fill again; either way, the person's twenty answers are what decide whether this can be handed over.` : null,
           `bundle: ${dir}`,
         ].filter(Boolean).join("\n"),
         data: { bundle: dir, legal, answered, failed, settled: sure, nand: c.circuit.nand, rowsChecked: c.verification.rowsChecked, review, yosys: second, ...(free ? { trial: { left: free.left, limit: free.limit } } : {}) },

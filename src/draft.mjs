@@ -31,7 +31,10 @@ import { parseDecision } from "./decision.mjs";
 const SMELLS = [
   [/\b(free.?form|free.text|raw text|the text\b|wording|phrasing|sentiment|nlp|embedding|classifier|language model|how (?:it|the \w+) is (?:written|phrased|worded)|what (?:it|the \w+) says)\b/i, "reads free text"],
   [/\b(name|email|identity|who the|user id|account id|customer id|person's)\b/i, "needs to know who someone is"],
-  [/\b(api|endpoint|http|fetch|request to|look ?up in|third.?party|external service)\b/i, "calls out to something"],
+  // The act of calling out, not the word. "error.status from the HTTP client" is a value the
+  // program already holds; a real agent's first draft was flagged for saying "HTTP". "the rate
+  // from the pricing API" or "looked up in the CRM" is a call the program would have to make.
+  [/\b(call(?:s|ing)? (?:an? |the )?(?:external |remote |third.?party )?(?:api|service|endpoint|server)|fetch(?:es|ed|ing)? (?:from|live)|look(?:s|ed|ing)? ?up (?:in|from|on)|quer(?:y|ies|ying) (?:an? |the )?(?:api|service|database|server)|request to|third.?party|external (?:api|service)|from (?:an?|the) [\w-]+ (?:api|service))\b/i, "calls out to something"],
   [/\b(timestamp|clock|current time|time of day|date|calendar|utc)\b/i, "looks at a clock"],
 ];
 
