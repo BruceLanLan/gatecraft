@@ -114,7 +114,8 @@ export const MAX_FILL_ROWS = 4096;
 
 export const METHODS = {
   // What this server is and what it answers.
-  "health.status": (_params, { methods = METHODS, plugins = [], decisionKey = null } = {}) => ({
+  "health.status": (_params, { methods = METHODS, plugins = [], decisionKey = null, keyStore = null } = {}) => ({
+    canSaveKey: Boolean(keyStore),
     compiler: COMPILER,
     methods: Object.keys(methods),
     ...(plugins.length ? { plugins } : {}),
@@ -315,6 +316,20 @@ export const METHODS = {
     const fill = await fillDecision(d, filler, { concurrency: Math.min(Math.max(1, concurrency), 16) });
     const answered = fill.rows.filter((r) => r.choice);
     return { fill, legal, answered: answered.length, failed: fill.rows.filter((r) => r.source === "failed").length, settled: answered.filter((r) => (r.confidence ?? 1) >= d.threshold).length, ...(free ? { trial: { left: free.left, limit: free.limit } } : {}) };
+  },
+
+  // Run locally, the page can put the decision-model key where this server reads it, so nobody
+  // needs a terminal. Only the local server offers this (the website has no server and keeps a
+  // key in the page instead); the key is written, never returned.
+  "key.save": ({ key }, { keyStore = null } = {}) => {
+    if (!keyStore) throw new ApiError("bad_request", "saving a key is only possible when gatecraft runs on your own computer");
+    try { const r = keyStore.save(key); return { saved: true, file: r.file, overriddenByEnv: r.overriddenByEnv }; }
+    catch (error) { throw new ApiError("bad_request", error.message); }
+  },
+  "key.forget": (_params, { keyStore = null } = {}) => {
+    if (!keyStore) throw new ApiError("bad_request", "removing a key is only possible when gatecraft runs on your own computer");
+    const r = keyStore.forget();
+    return { removed: true, file: r.file, overriddenByEnv: r.overriddenByEnv };
   },
 
   // How many free fills this address has left. Asked by the page before it offers one.

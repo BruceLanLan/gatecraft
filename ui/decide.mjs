@@ -337,7 +337,7 @@ function renderJevKey(t, redraw) {
   const box = el("details", "jevkey");
   box.open = Boolean(decideState.jevOpen) || (decideState.keyPresent === false && !(decideState.trial?.available && decideState.trial.left > 0));
   box.addEventListener("toggle", () => { decideState.jevOpen = box.open; });
-  const summary = el("summary", null, decideState.jevKey && site ? t("jevUsing", decideState.jevKey.slice(-4)) : t("jevSummary"));
+  const summary = el("summary", null, decideState.jevKey && site ? t("jevUsing", decideState.jevKey.slice(-4)) : !site && decideState.keyPresent ? t("jevSavedSummary") : t("jevSummary"));
   box.append(summary);
   const steps = el("ol", "jev-steps");
   const link = (href, text) => { const a = el("a", null, text); a.href = href; a.target = "_blank"; a.rel = "noopener"; return a; };
@@ -347,8 +347,42 @@ function renderJevKey(t, redraw) {
   steps.append(s1, s2, s3, el("li", null, t("jevStep4")));
   box.append(steps);
   if (!site) {
-    box.append(el("pre", "mono jev-cmd", "mkdir -p ~/.config/gatecraft && printf '%s' 'YOUR_KEY' > ~/.config/gatecraft/jev.token && chmod 600 ~/.config/gatecraft/jev.token"));
-    box.append(el("p", "hint", t("jevLocalReload")));
+    // Run locally: the server keeps the key in ~/.config/gatecraft/jev.token and reads it on every
+    // fill. The page can write it there for you; the terminal commands are for anyone who prefers
+    // them, one per shell, because printf does not exist in PowerShell.
+    if (decideState.keyPresent) {
+      box.append(el("p", "result", t("jevSavedLocal")));
+      const forget = el("button", "ghost", t("jevForgetLocal"));
+      forget.addEventListener("click", async () => { try { await api("key.forget"); } catch (error) { decideState.error = String(error.message); } await probeKey(); redraw(); });
+      box.append(forget);
+    } else {
+      const row = el("div", "row jev-row");
+      const input = el("input", "jev-input mono");
+      input.type = "password";
+      input.id = "jev-key-local";
+      input.placeholder = t("jevPlaceholder");
+      input.autocomplete = "off";
+      const save = el("button", null, t("jevSaveLocal"));
+      save.addEventListener("click", async () => {
+        decideState.error = "";
+        try {
+          const r = await api("key.save", { key: input.value });
+          if (r.overriddenByEnv) decideState.error = t("jevEnvOverride");
+        } catch (error) { decideState.error = String(error.message); }
+        await probeKey();
+        redraw();
+      });
+      row.append(input, save);
+      box.append(row);
+    }
+    const terminal = el("details", "jev-terminal");
+    terminal.append(el("summary", null, t("jevTerminal")));
+    terminal.append(el("p", "hint", "macOS / Linux"));
+    terminal.append(el("pre", "mono jev-cmd", "mkdir -p ~/.config/gatecraft && printf '%s' 'YOUR_KEY' > ~/.config/gatecraft/jev.token && chmod 600 ~/.config/gatecraft/jev.token"));
+    terminal.append(el("p", "hint", "Windows (PowerShell)"));
+    terminal.append(el("pre", "mono jev-cmd", "New-Item -ItemType Directory -Force \"$HOME\\.config\\gatecraft\" | Out-Null; Set-Content -NoNewline -Path \"$HOME\\.config\\gatecraft\\jev.token\" -Value 'YOUR_KEY'"));
+    terminal.append(el("p", "hint", t("jevLocalReload")));
+    box.append(terminal);
     return box;
   }
   const row = el("div", "row jev-row");
@@ -438,6 +472,7 @@ function renderFill(root, t, redraw) {
       if (!out.answered) throw new Error(t("decNothingAnswered", out.fill.rows.find((r) => r?.error)?.error ?? ""));
       decideState.fillStats = out;
       if (out.trial && decideState.trial) decideState.trial.left = out.trial.left;
+      await probeKey();
       decideState.filledBy = rule ? "rule" : "model";
       await freezeAndDraw(out.fill);
     } catch (error) { decideState.error = String(error.message); }
@@ -776,7 +811,11 @@ function onKey(event) {
 export function renderDecide(root, t) {
   root.replaceChildren();
   const redraw = () => renderDecide(root, t);
-  if (!keyTarget) document.addEventListener("keydown", onKey);
+  if (!keyTarget) {
+    document.addEventListener("keydown", onKey);
+    // Someone who went to a terminal to save the key comes back to this tab; notice it then.
+    window.addEventListener("focus", () => { if (keyTarget && !keyTarget.root.hidden) probeKey().then(redrawDecide, () => {}); });
+  }
   keyTarget = { root, t };
   persist();
   if (decideState.read) {

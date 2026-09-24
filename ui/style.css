@@ -635,3 +635,6 @@ table.blocks th, table.blocks td { text-align: left; padding: 4px 8px; border-bo
 #decide .jev-route { margin-top: 8px; border-top: 1px dashed var(--line); padding-top: 8px; }
 #decide .jev-route summary { font-weight: 500; font-size: 13px; color: var(--muted); cursor: pointer; }
 #decide .jev-deploy { display: inline-block; margin: 4px 0 8px; color: var(--accent); font-weight: 600; }
+#decide .jev-terminal { margin-top: 8px; }
+#decide .jev-terminal summary { font-size: 13px; color: var(--muted); cursor: pointer; }
+#decide .jev-terminal .hint { margin: 6px 0 2px; font-size: 12px; }

@@ -336,3 +336,36 @@ test("the server's own decision key is never handed to a caller, and its absence
   assert.ok(seen.every((s) => s.auth === "Bearer k"));
   assert.doesNotMatch(JSON.stringify(done.body.result).slice(0, 4000), /Bearer|"k"/);
 });
+
+// Run locally, the page saves the key for you: written where the server reads it, never read back,
+// and refused anywhere there is no local server to write it.
+test("the local page can save and remove the decision-model key, and nothing else can", async () => {
+  const { mkdtempSync, readFileSync, statSync, existsSync, rmSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const dir = mkdtempSync(join(tmpdir(), "gatecraft-key-"));
+  const saved = process.env.TYPESAFE_API_KEY;
+  delete process.env.TYPESAFE_API_KEY;
+  const server = await startUiServer({ port: 0, keyDir: dir });
+  try {
+    const call = async (method, params = {}) => (await fetch(`${server.url}api`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ method, params }) })).json();
+    assert.equal((await call("health.status")).result.decisionKey, "absent");
+    assert.equal((await call("health.status")).result.canSaveKey, true);
+    assert.equal((await call("key.save", { key: "not a key" })).ok, false, "whitespace is refused");
+    const ok = await call("key.save", { key: "  tsk-live-abcdef123456  " });
+    assert.equal(ok.ok, true, JSON.stringify(ok));
+    assert.doesNotMatch(JSON.stringify(ok), /abcdef123456/, "the key is never sent back");
+    assert.equal(readFileSync(join(dir, "jev.token"), "utf8"), "tsk-live-abcdef123456");
+    if (process.platform !== "win32") assert.equal(statSync(join(dir, "jev.token")).mode & 0o777, 0o600);
+    assert.equal((await call("health.status")).result.decisionKey, "present", "read on the next request, no restart");
+    assert.equal((await call("key.forget")).ok, true);
+    assert.equal(existsSync(join(dir, "jev.token")), false);
+    assert.equal((await call("health.status")).result.decisionKey, "absent");
+  } finally {
+    await server.close();
+    if (saved !== undefined) process.env.TYPESAFE_API_KEY = saved;
+    rmSync(dir, { recursive: true, force: true });
+  }
+  // With no local server - the website, or any other caller of the methods - there is nothing to write.
+  assert.equal((await handleApi({ method: "key.save", params: { key: "tsk-live-abcdef123456" } }, {})).body.ok, false);
+});

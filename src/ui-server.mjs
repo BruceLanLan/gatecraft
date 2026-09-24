@@ -4,7 +4,7 @@
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { readFileSync } from "node:fs";
-import { decisionKey } from "./decisionkey.mjs";
+import { decisionKey, forgetDecisionKey, keyDir as defaultKeyDir, saveDecisionKey } from "./decisionkey.mjs";
 import { homedir } from "node:os";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -102,7 +102,9 @@ export async function servedFile(path) {
   }
 }
 
-export function startUiServer({ port = 4747, host = "127.0.0.1", apiToken = null, api = true, added = null } = {}) {
+export function startUiServer({ port = 4747, host = "127.0.0.1", apiToken = null, api = true, added = null, keyDir = defaultKeyDir() } = {}) {
+  // What the page may do with the key file: write it for you, or remove it. Never read it back.
+  const keyStore = { save: (key) => saveDecisionKey(key, { dir: keyDir }), forget: () => forgetDecisionKey({ dir: keyDir }) };
   const methods = added?.methods && Object.keys(added.methods).length ? { ...METHODS, ...added.methods } : METHODS;
   const plugins = added?.plugins ?? [];
   const routes = api ? (added?.routes ?? []) : [];
@@ -144,7 +146,7 @@ export function startUiServer({ port = 4747, host = "127.0.0.1", apiToken = null
       if (!originOk) return json(403, { ok: false, error: { code: "forbidden_origin", message: "the API answers requests from this machine, not from another site's page" } });
       if (!tokenOk()) return json(401, { ok: false, error: { code: "unauthorized", message: "this server was started with a token; send it as authorization: Bearer <token>" } });
       // A GET lists what the API answers, the way the page's own address does.
-      if (req.method === "GET" || req.method === "HEAD") return json(200, { ok: true, method: "health.status", result: METHODS["health.status"]({}, { methods, plugins, decisionKey: decisionKey() }) });
+      if (req.method === "GET" || req.method === "HEAD") return json(200, { ok: true, method: "health.status", result: METHODS["health.status"]({}, { methods, plugins, decisionKey: decisionKey({ dir: keyDir }), keyStore }) });
       if (req.method !== "POST") return send(405, "method not allowed\n", { allow: "GET, HEAD, POST" });
       let read;
       try {
@@ -159,7 +161,7 @@ export function startUiServer({ port = 4747, host = "127.0.0.1", apiToken = null
       } catch (error) {
         return json(400, { ok: false, error: { code: "bad_request", message: `the body is not JSON: ${error.message}` } });
       }
-      const answer = await handleApi(body, { methods, plugins, decisionKey: decisionKey() });
+      const answer = await handleApi(body, { methods, plugins, decisionKey: decisionKey({ dir: keyDir }), keyStore });
       return json(answer.status, answer.body);
     }
     // The preview slot: the page posts a page, gets an id, and frames it back.
