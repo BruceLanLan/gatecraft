@@ -1,0 +1,7 @@
+# Your own gatecraft forwarder. Deploy with the "Deploy to Cloudflare" button in the README, or:
+#   cd forwarder && npx wrangler deploy
+# Then paste the address it prints into the website's step 2 ("where calls go").
+name = "gatecraft-forwarder"
+main = "worker.mjs"
+compatibility_date = "2026-09-01"
+workers_dev = true

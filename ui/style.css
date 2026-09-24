@@ -632,3 +632,6 @@ table.blocks th, table.blocks td { text-align: left; padding: 4px 8px; border-bo
 #decide .jev-input { flex: 1 1 260px; min-width: 0; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
 #decide .jev-remember { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); margin: 6px 0; }
 #decide .jev-cmd { white-space: pre-wrap; word-break: break-all; font-size: 12px; padding: 8px 10px; border-radius: 8px; background: var(--soft); margin: 4px 0; }
+#decide .jev-route { margin-top: 8px; border-top: 1px dashed var(--line); padding-top: 8px; }
+#decide .jev-route summary { font-weight: 500; font-size: 13px; color: var(--muted); cursor: pointer; }
+#decide .jev-deploy { display: inline-block; margin: 4px 0 8px; color: var(--accent); font-weight: 600; }

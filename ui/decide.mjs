@@ -45,7 +45,7 @@ const api = async (method, params = {}) => {
   // On the website a visitor's own decision-model key lives only in this page; the browser cannot
   // call the model directly, so it goes through the free-fill service, which forwards it uncounted.
   const own = decideState.jevKey || null;
-  const { body } = await handleApi({ method, params }, { decisionKey: own, jevProxy: own ? trialUrl() : null });
+  const { body } = await handleApi({ method, params }, { decisionKey: own, jevProxy: own ? (decideState.forwarder || trialUrl()) : null });
   if (!body.ok) throw new Error(body.error?.message ?? `${method} failed`);
   return body.result;
 };
@@ -97,6 +97,16 @@ restore();
 // work, so "Start over" does not carry it into a screenshot or a shared machine by surprise.
 const JEV_SLOT = "gatecraft.jev.v1";
 try { decideState.jevKey = localStorage.getItem(JEV_SLOT) || ""; decideState.jevRemember = Boolean(decideState.jevKey); } catch { decideState.jevKey = ""; }
+// Which forwarder carries a visitor's own key. gatecraft's by default; anyone who would rather
+// their key touch no server but their own deploys forwarder/ and points the page at it.
+const FWD_SLOT = "gatecraft.forwarder.v1";
+try { decideState.forwarder = localStorage.getItem(FWD_SLOT) || ""; } catch { decideState.forwarder = ""; }
+function setForwarder(url) {
+  decideState.forwarder = url;
+  try { if (url) localStorage.setItem(FWD_SLOT, url); else localStorage.removeItem(FWD_SLOT); } catch { /* lasts this visit */ }
+}
+const DEPLOY_FORWARDER = "https://deploy.workers.cloudflare.com/?url=https://github.com/BruceLanLan/gatecraft/tree/main/forwarder";
+
 function setJevKey(key, remember) {
   decideState.jevKey = key.trim();
   decideState.jevRemember = remember;
@@ -369,6 +379,40 @@ function renderJevKey(t, redraw) {
     box.append(forget);
   }
   box.append(el("p", "hint", t("jevPrivacy")));
+
+  // Where the calls go, and how to make that nobody's server but your own.
+  const via = decideState.forwarder || trialUrl() || "";
+  const route = el("details", "jev-route");
+  route.open = Boolean(decideState.fwdOpen);
+  route.addEventListener("toggle", () => { decideState.fwdOpen = route.open; });
+  route.append(el("summary", null, t("jevVia", via.replace(/^https:\/\//, ""))));
+  route.append(el("p", "hint", t("jevFwdHow")));
+  const deploy = el("a", "jev-deploy", t("jevFwdDeploy"));
+  deploy.href = DEPLOY_FORWARDER; deploy.target = "_blank"; deploy.rel = "noopener";
+  route.append(deploy);
+  const fwdRow = el("div", "row jev-row");
+  const fwd = el("input", "jev-input mono");
+  fwd.id = "jev-forwarder";
+  fwd.placeholder = "https://gatecraft-forwarder.<you>.workers.dev";
+  fwd.value = decideState.forwarder ?? "";
+  const save = el("button", null, t("jevFwdSave"));
+  save.addEventListener("click", () => {
+    const url = fwd.value.trim().replace(/\/+$/, "");
+    if (url && !/^https:\/\/[^\s/]+(\/[^\s]*)?$/.test(url)) { decideState.error = t("jevFwdBad"); redraw(); return; }
+    decideState.error = "";
+    setForwarder(url);
+    redraw();
+  });
+  fwdRow.append(fwd, save);
+  route.append(fwdRow);
+  if (decideState.forwarder) {
+    const back = el("button", "ghost", t("jevFwdReset"));
+    back.addEventListener("click", () => { setForwarder(""); redraw(); });
+    route.append(back);
+  }
+  route.append(el("p", "hint", t("jevLocalAlt")));
+  route.append(el("pre", "mono jev-cmd", "git clone https://github.com/BruceLanLan/gatecraft && cd gatecraft && npm run ui"));
+  box.append(route);
   return box;
 }
 
@@ -389,6 +433,9 @@ function renderFill(root, t, redraw) {
     decideState.busy = "fill"; decideState.error = ""; renderDecide(root, t);
     try {
       const out = await api("decision.fill", { spec: decideState.spec, ...(rule ? { rule } : {}) });
+      // Nothing answered is not a fill to freeze: say what the model said instead of carrying an
+      // empty table into the proof and failing three steps later with something opaque.
+      if (!out.answered) throw new Error(t("decNothingAnswered", out.fill.rows.find((r) => r?.error)?.error ?? ""));
       decideState.fillStats = out;
       if (out.trial && decideState.trial) decideState.trial.left = out.trial.left;
       decideState.filledBy = rule ? "rule" : "model";

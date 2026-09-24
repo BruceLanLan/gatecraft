@@ -90,9 +90,19 @@ flowchart LR
 | **Free fills** | nothing — 3 per address, paid by the project | seeing the whole flow with the calibrated model |
 | **A rule** | nothing — free and exact | a decision you can already write as an if (the verdict will usually say: do that) |
 | **Your own model** | the model you set up in the page, or your agent over MCP | everyone, on their own account |
-| **Jev** | a free [typesafe.ai](https://typesafe.ai) key, about 1 cent a decision | the best-calibrated confidence |
+| **Jev** | a free [typesafe.ai](https://typesafe.ai) key — new accounts get **$5 of free credit**, about 500 decisions | the best-calibrated confidence |
 
 With your own model each situation is asked **three times** and the confidence is how often the answers agreed — a chat model's own confidence was measured to carry nothing, while unanimous rows reproduced 96–98% of the time. The call count is shown before you start. gatecraft never calls a model on its own and never bundles a key; the free fills are the one exception, forwarded by a small service at `trial.gatecraft.fun` that keeps only a hashed count per address (`GATECRAFT_TRIAL=off` turns it off). To use your own Jev key: sign in at [console.typesafe.ai](https://console.typesafe.ai/), create a key at [console.typesafe.ai/keys](https://console.typesafe.ai/keys), then paste it into step 2 on the website (it stays in your browser; calls are forwarded, never stored) or, locally, `printf '%s' 'KEY' > ~/.config/gatecraft/jev.token`. The page walks you through it.
+
+### Your key, your server
+
+The decision model does not accept calls from web pages, so on the website a call made with your own key goes through a forwarder that sends it on and keeps nothing — gatecraft's by default. If you would rather your key touch no server but your own, either:
+
+- **deploy your own forwarder** (a free Cloudflare account, one click), then paste its address into step 2 under "use your own instead":
+
+  [![Deploy your own forwarder to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/BruceLanLan/gatecraft/tree/main/forwarder)
+
+- or **run gatecraft on your computer** (`npm run ui`, or MCP below): your key goes straight from your machine to the model, through no forwarder at all.
 
 ## Use it from your agent (MCP)
 

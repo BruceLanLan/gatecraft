@@ -1,0 +1,6 @@
+{
+  "name": "gatecraft-forwarder",
+  "private": true,
+  "description": "Forwards the decision model's request with your own key, so gatecraft.fun can use it without anyone else's server.",
+  "scripts": { "deploy": "wrangler deploy" }
+}

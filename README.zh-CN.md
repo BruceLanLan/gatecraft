@@ -90,9 +90,19 @@ flowchart LR
 | **免费填表** | 什么都不用——每个地址 3 次，项目方付费 | 用校准过的模型把整个流程走一遍 |
 | **规则** | 什么都不用，免费、确定 | 本来就能写成 if 的决策（裁决通常也会告诉你：就这么办） |
 | **你自己的模型** | 你在页面上配好的模型，或者通过 MCP 接入的 agent | 所有人，记在自己的账上 |
-| **Jev** | 免费注册一个 [typesafe.ai](https://typesafe.ai) 的 key，一个决策约 1 美分 | 想要校准得最好的把握度 |
+| **Jev** | 免费注册一个 [typesafe.ai](https://typesafe.ai) 的 key——新账号**送 5 美元免费额度**，大约够做 500 个决策 | 想要校准得最好的把握度 |
 
 用你自己的模型时，每种情况会**问三遍**，把握度是三次答案一致的比例——实测对话模型自报的把握度没有信息量，而三次全一致的行，重跑时 96%–98% 答案不变。开始之前会先告诉你要调用多少次。gatecraft 自己从不调用模型，也不内置任何 key；免费填表是唯一的例外，由 `trial.gatecraft.fun` 上的一个小服务转发，它只存每个地址的次数，而且地址先做了哈希（设置 `GATECRAFT_TRIAL=off` 可以关掉）。要用你自己的 Jev key：在 [console.typesafe.ai](https://console.typesafe.ai/) 注册登录，到 [console.typesafe.ai/keys](https://console.typesafe.ai/keys) 创建一个 key；在网站上直接粘贴到第 2 步里（key 只留在你的浏览器里，调用只经过转发、不保存），本机运行则用 `printf '%s' 'KEY' > ~/.config/gatecraft/jev.token`。页面上有分步引导。
+
+### 让 key 只经过你自己的服务器
+
+这个决策模型不接受网页直接调用，所以在网站上用你自己的 key 时，调用要经过一个转发服务——它只转发、不保存任何东西，默认用 gatecraft 的。如果你希望 key 只经过自己的服务器，有两个办法：
+
+- **部署你自己的转发服务**（一个免费 Cloudflare 账号，点一下就行），然后在第 2 步「改用你自己的」里粘贴它的地址：
+
+  [![Deploy your own forwarder to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/BruceLanLan/gatecraft/tree/main/forwarder)
+
+- 或者**在你自己的电脑上运行 gatecraft**（`npm run ui`，或者下面的 MCP）：key 会从你的电脑直接发给模型，不经过任何转发服务。
 
 ## 接你自己的 agent（MCP）
 
