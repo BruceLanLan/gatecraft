@@ -15,5 +15,5 @@ mkdirSync(out, { recursive: true });
 for (const dir of ["ui", "src", "examples"]) cpSync(dir, join(out, dir), { recursive: true });
 writeFileSync(join(out, "_redirects"), "/ /ui/ 302\n");
 // A browser that ignores _redirects still lands on the tool.
-writeFileSync(join(out, "index.html"), '<!doctype html><meta charset="utf-8"><title>gatecraft</title><meta http-equiv="refresh" content="0; url=/ui/"><a href="/ui/">gatecraft</a>\n');
+writeFileSync(join(out, "index.html"), '<!doctype html><meta charset="utf-8"><title>gatecraft</title><meta property="og:title" content="gatecraft - freeze one decision, prove it on every input"><meta property="og:image" content="https://gatecraft.fun/ui/og.png"><meta name="twitter:card" content="summary_large_image"><meta http-equiv="refresh" content="0; url=/ui/"><a href="/ui/">gatecraft</a>\n');
 console.log(`built ${out}`);
