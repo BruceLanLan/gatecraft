@@ -46,7 +46,7 @@ test("an agent can take a decision from review to an importable module over stdi
     s.notify("notifications/initialized");
 
     const listed = (await s.request("tools/list", {})).result.tools;
-    assert.deepEqual(listed.map((t) => t.name), ["gatecraft_decision_review", "gatecraft_decision_situations", "gatecraft_decision_fill", "gatecraft_decision_anchors", "gatecraft_decision_calibrate", "gatecraft_decision_decide", "gatecraft_decision_export"]);
+    assert.deepEqual(listed.map((t) => t.name), ["gatecraft_decision_guide", "gatecraft_decision_review", "gatecraft_decision_situations", "gatecraft_decision_fill", "gatecraft_decision_anchors", "gatecraft_decision_calibrate", "gatecraft_decision_decide", "gatecraft_decision_export"]);
     for (const t of listed) assert.match(t.name, /^[a-zA-Z0-9_-]{1,64}$/);
 
     const review = await s.call("gatecraft_decision_review", { spec });
@@ -139,6 +139,33 @@ test("an agent can fill a decision with its own answers, and an agent's anchors 
     const exported = await mcp.callTool("gatecraft_decision_export", { bundle: filled.structuredContent.bundle });
     assert.equal(exported.structuredContent.checkedAgainstAPerson, false, "an agent's anchors never count as a person's");
     assert.match(readFileSync(exported.structuredContent.file, "utf8"), /NOBODY HAS CHECKED THAT/);
+  } finally {
+    rmSync(out, { recursive: true, force: true });
+  }
+});
+
+test("the guide's example is a legal decision, and repeated answers are scored by agreement", async () => {
+  const out = mkdtempSync(join(tmpdir(), "gatecraft-mcp-"));
+  try {
+    const mcp = createGatecraftMcp({ outRoot: out, trial: null, yosys: noYosys });
+    const guide = await mcp.callTool("gatecraft_decision_guide", {});
+    assert.match(guide.content[0].text, /ASK THE PERSON/);
+    const example = guide.structuredContent.example;
+    const review = await mcp.callTool("gatecraft_decision_review", { spec: example });
+    assert.ok(!review.isError, review.content[0].text);
+
+    // Three answers for every situation: unanimous on some, split on others.
+    const listed = await mcp.callTool("gatecraft_decision_situations", { spec: example, limit: 512 });
+    const answers = listed.structuredContent.situations.flatMap((s, i) => {
+      const choice = s.given.status === 2 ? "give_up" : "retry";
+      const other = choice === "retry" ? "give_up" : "retry";
+      return i % 2 ? [choice, choice, choice].map((c) => ({ given: s.given, choice: c })) : [choice, choice, other].map((c) => ({ given: s.given, choice: c }));
+    });
+    const filled = await mcp.callTool("gatecraft_decision_fill", { spec: example, with: "answers", answers });
+    assert.ok(!filled.isError, filled.content[0].text);
+    const rows = JSON.parse(readFileSync(join(filled.structuredContent.bundle, "fill.json"), "utf8")).rows.filter((r) => r?.choice);
+    assert.deepEqual([...new Set(rows.map((r) => r.confidence))].sort(), [0.667, 1], "2 of 3 and 3 of 3");
+    assert.ok(filled.structuredContent.settled > 0 && filled.structuredContent.settled < rows.length, "only the unanimous ones clear the 0.7 threshold");
   } finally {
     rmSync(out, { recursive: true, force: true });
   }

@@ -638,3 +638,8 @@ table.blocks th, table.blocks td { text-align: left; padding: 4px 8px; border-bo
 #decide .jev-terminal { margin-top: 8px; }
 #decide .jev-terminal summary { font-size: 13px; color: var(--muted); cursor: pointer; }
 #decide .jev-terminal .hint { margin: 6px 0 2px; font-size: 12px; }
+#decide .draft-prompt { width: 100%; font-size: 12px; padding: 8px 10px; border-radius: 8px; }
+#decide .useit { margin-top: 16px; display: grid; gap: 8px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+#decide .useit-title { margin: 0; font-size: 15px; }
+#decide .useit-code, #decide .useit-agent { margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 12px; line-height: 1.6; padding: 10px 12px; border-radius: 8px; background: var(--soft); }
+#decide .useit-agent { font-family: var(--sans); font-size: 13px; }

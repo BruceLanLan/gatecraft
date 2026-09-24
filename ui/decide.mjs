@@ -131,6 +131,10 @@ export function useModel(get, open) {
 
 // A model drafts; code judges the shape; a person judges the buckets. Two tries, the second
 // told exactly what was wrong with the first - the same repair the CLI's draft command does.
+// A model on the visitor's own computer, called from the website: the browser refuses it and so
+// does Ollama unless told this site may call it. Said plainly rather than as "failed to fetch".
+const localBlocked = (url) => decideState.hosted && /^http:\/\/(127\.0\.0\.1|localhost|\[::1\])[:/]/.test(url);
+
 async function draftCodebook(sentence, t) {
   const m = modelAccess.get();
   let why = "";
@@ -139,7 +143,7 @@ async function draftCodebook(sentence, t) {
     const { url, init } = modelRequest({ ...m, messages: [{ role: "user", content }] });
     let response;
     try { response = await fetch(url, { ...init, signal: AbortSignal.timeout(180_000) }); }
-    catch (error) { throw new Error(t("decDraftUnreachable", new URL(url).origin, error.name === "TimeoutError" ? "timed out" : error.message)); }
+    catch (error) { throw new Error(localBlocked(url) ? t("decLocalBlocked") : t("decDraftUnreachable", new URL(url).origin, error.name === "TimeoutError" ? "timed out" : error.message)); }
     let body = null;
     try { body = await response.json(); } catch { /* an error page: the status says enough */ }
     const text = replyText(m.provider, response.status, body);
@@ -223,7 +227,16 @@ function startOwn() {
 async function readBackNow() {
   decideState.error = "";
   try {
-    const spec = JSON.parse(decideState.specText);
+    // Pure JSON, or a whole reply pasted from an AI chat with prose and fences around it. Widths
+    // too small for their own codes are settled the same way a drafted file's are.
+    let spec;
+    try { spec = JSON.parse(decideState.specText); }
+    catch {
+      const settled = settleWidths(specFromReply(decideState.specText));
+      spec = settled.spec;
+      decideState.widened = settled.fixed;
+      decideState.specText = JSON.stringify(spec, null, 2);
+    }
     decideState.read = await api("decision.review", { spec });
     decideState.spec = spec;
     decideState.fill = decideState.frozen = decideState.sheet = decideState.calibration = null;
@@ -262,8 +275,27 @@ function renderDraft(t, redraw) {
   });
   const pick = el("button", "ghost", t("decDraftPick"));
   pick.addEventListener("click", () => modelAccess.open());
-  bar.append(go, pick, el("span", "hint", m?.ready ? t("decDraftModel", m.label) : t("decDraftNoModel")));
+  // No model set up at all: the same prompt, for any AI chat the visitor already uses. They paste
+  // the whole reply into the box below; the read-back finds the JSON in it.
+  const copy = el("button", "ghost", decideState.copied ? t("decDraftCopied") : t("decDraftCopy"));
+  copy.addEventListener("click", async () => {
+    const sentence = (decideState.sentence ?? "").trim();
+    if (!sentence) { decideState.error = t("decDraftEmpty"); redraw(); return; }
+    const prompt = codebookPrompt(sentence);
+    try { await navigator.clipboard.writeText(prompt); decideState.copied = true; decideState.promptShown = null; }
+    catch { decideState.copied = false; decideState.promptShown = prompt; }
+    decideState.error = "";
+    redraw();
+  });
+  bar.append(go, copy, pick);
   box.append(bar);
+  box.append(el("p", "hint", m?.ready ? t("decDraftModel", m.label) : t("decDraftNoModel")));
+  if (decideState.copied) box.append(el("p", "result", t("decDraftPasteBack")));
+  if (decideState.promptShown) {
+    const shown = el("textarea", "draft-prompt mono");
+    shown.rows = 6; shown.readOnly = true; shown.value = decideState.promptShown;
+    box.append(el("p", "hint", t("decDraftSelect")), shown);
+  }
   return box;
 }
 
@@ -496,7 +528,7 @@ function renderFill(root, t, redraw) {
         const { url, init } = modelRequest({ ...m, messages: [{ role: "user", content: prompt }] });
         let response;
         try { response = await fetch(url, { ...init, signal: AbortSignal.timeout(120_000) }); }
-        catch (error) { throw new Error(t("decDraftUnreachable", new URL(url).origin, error.name === "TimeoutError" ? "timed out" : error.message)); }
+        catch (error) { throw new Error(localBlocked(url) ? t("decLocalBlocked") : t("decDraftUnreachable", new URL(url).origin, error.name === "TimeoutError" ? "timed out" : error.message)); }
         let body = null;
         try { body = await response.json(); } catch { /* the status says enough */ }
         return replyText(m.provider, response.status, body);
@@ -645,6 +677,51 @@ function renderTry(t, redraw) {
   return box;
 }
 
+// What to do with the file: the three lines of code, written with this decision's own field
+// names and codes, and the same thing as words to hand a coding agent - because the step people
+// get wrong is turning their program's data into the codes, and that is theirs to write.
+function useItText(spec, name) {
+  const fields = Object.entries(spec.observe);
+  const choices = Object.keys(spec.act.choices);
+  const codeLines = fields.map(([f, v]) => `//   ${f}: ${Object.entries(v.values).map(([c, p]) => `${c} = ${p}`).join(" · ")}`);
+  const code = [
+    `import { decide } from "./${name}";`,
+    "",
+    "// Your program turns what it already knows into these codes:",
+    ...codeLines,
+    `const { action, review } = decide({ ${fields.map(([f]) => f).join(", ")} });`,
+    "",
+    `if (review) handToAPerson();   // a code with no meaning, or a case it was not sure of`,
+    `else ${choices.length === 2 ? `if (action === "${choices[0]}") { /* ${spec.act.choices[choices[0]]} */ } else { /* ${spec.act.choices[choices[1]]} */ }` : `act(action);          // one of: ${choices.join(" | ")}`}`,
+  ].join("\n");
+  const agent = [
+    `Add ${name} to this project. It is a frozen, proven decision: "${spec.question}"`,
+    "It exports decide(codes), which returns { action, review }.",
+    "Write one small function that turns our own data into these codes, exactly as described:",
+    ...fields.map(([f, v]) => `- ${f} (${v.raw ?? "see the codebook"}): ${Object.entries(v.values).map(([c, p]) => `${c} = ${p}`).join("; ")}`),
+    `Then replace the place where we currently decide this (for example a call to a language model) with decide(). When review is true, hand the case to a person instead of acting. The possible actions are: ${choices.map((c) => `${c} (${spec.act.choices[c]})`).join(", ")}.`,
+    "Do not change the module itself; write tests for the bucketing function.",
+  ].join("\n");
+  return { code, agent };
+}
+
+function renderUseIt(t) {
+  const name = decideState.exported ?? `${decideState.spec.name}.decision.mjs`;
+  const { code, agent } = useItText(decideState.spec, name);
+  const box = el("div", "useit");
+  box.append(el("h3", "useit-title", t("useItTitle")));
+  box.append(el("pre", "mono useit-code", code));
+  box.append(el("p", "hint", t("useItAgent")));
+  const words = el("pre", "useit-agent", agent);
+  const copy = el("button", "ghost", t("useItCopy"));
+  copy.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(agent); copy.textContent = t("useItCopied"); }
+    catch { const r = document.createRange(); r.selectNodeContents(words); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
+  });
+  box.append(words, copy);
+  return box;
+}
+
 // Step 3: the gate. One situation at a time, and never what the model said about it.
 function renderAsk(root, t, redraw) {
   const section = card(t("decAskTitle"), 3);
@@ -764,10 +841,13 @@ function renderVerdict(root, t, redraw) {
           const a = document.createElement("a");
           a.href = url; a.download = out.name; a.click();
           URL.revokeObjectURL(url);
+          decideState.exported = out.name;
+          redraw();
         } catch (error) { decideState.error = String(error.message); redraw(); }
       });
       section.append(download);
       section.append(el("p", "hint", t("decExportHint")));
+      section.append(renderUseIt(t));
     } else {
       section.append(el("p", "warn", tooFew ? t("decNoExportYet") : t("decNoExport")));
     }

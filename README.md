@@ -8,7 +8,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-2E6B4C)](LICENSE)
 ![Node 20+](https://img.shields.io/badge/node-%E2%89%A5%2020-5E594F)
 ![Zero dependencies](https://img.shields.io/badge/dependencies-0-5E594F)
-[![MCP](https://img.shields.io/badge/MCP-7%20tools-5E594F)](#use-it-from-your-agent-mcp)
+[![MCP](https://img.shields.io/badge/MCP-8%20tools-5E594F)](#use-it-from-your-agent-mcp)
 
 English · [中文](README.zh-CN.md)
 
@@ -52,6 +52,8 @@ Pick a situation and the proven circuit decides — the wires that carry 1 light
 git clone https://github.com/BruceLanLan/gatecraft && cd gatecraft
 npm run ui                        # http://127.0.0.1:4747
 ```
+
+Or without cloning: `npx -y -p git+https://github.com/BruceLanLan/gatecraft.git gatecraft`. Run locally, your own key goes straight from your machine to the model, and a model on your computer (Ollama, LM Studio) works as-is.
 
 **From your agent** — see [MCP](#use-it-from-your-agent-mcp) below.
 
@@ -106,17 +108,26 @@ The decision model does not accept calls from web pages, so on the website a cal
 
 ## Use it from your agent (MCP)
 
+No clone needed - Node 20+ and git are enough. In your project:
+
 ```
-claude mcp add gatecraft -- node /path/to/gatecraft/scripts/mcp.mjs --out ./gatecraft-out
+claude mcp add gatecraft -- npx -y -p git+https://github.com/BruceLanLan/gatecraft.git gatecraft-mcp --out ./gatecraft-out
 ```
 
-Other clients: `{ "mcpServers": { "gatecraft": { "command": "node", "args": ["/path/to/gatecraft/scripts/mcp.mjs", "--out", "./gatecraft-out"] } } }`. Then ask: *"freeze the auto-refund decision in our code with gatecraft."*
+Codex, Cursor and other clients take the same command in their MCP config:
+
+```json
+{ "mcpServers": { "gatecraft": { "command": "npx", "args": ["-y", "-p", "git+https://github.com/BruceLanLan/gatecraft.git", "gatecraft-mcp", "--out", "./gatecraft-out"] } } }
+```
+
+Then ask: *"freeze the auto-refund decision in our code with gatecraft."* The agent starts with `gatecraft_decision_guide` (the file format, a worked example and the flow), writes the decision, asks **you** the twenty questions, exports the module and wires it in with one small function that turns your data into the codes.
 
 | tool | what it does |
 |---|---|
+| `gatecraft_decision_guide` | the file format, a worked example, the flow, and how to wire the module in |
 | `gatecraft_decision_review` | reads a decision back in plain words, with what to check |
 | `gatecraft_decision_situations` | lists every situation, so the agent can answer them |
-| `gatecraft_decision_fill` | fills, freezes and proves — `rule`, `answers` (the agent's) or `jev` |
+| `gatecraft_decision_fill` | fills, freezes and proves — `rule`, `answers` (the agent's; three per situation are scored by agreement) or `jev` (your key, or the free fills) |
 | `gatecraft_decision_anchors` | draws twenty questions **for you**, not the agent |
 | `gatecraft_decision_calibrate` | sweeps the threshold against your answers |
 | `gatecraft_decision_decide` | runs the proven circuit on one situation |

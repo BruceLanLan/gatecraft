@@ -8,7 +8,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-2E6B4C)](LICENSE)
 ![Node 20+](https://img.shields.io/badge/node-%E2%89%A5%2020-5E594F)
 ![零依赖](https://img.shields.io/badge/dependencies-0-5E594F)
-[![MCP](https://img.shields.io/badge/MCP-7%20tools-5E594F)](#接你自己的-agentmcp)
+[![MCP](https://img.shields.io/badge/MCP-8%20tools-5E594F)](#接你自己的-agentmcp)
 
 [English](README.md) · 中文
 
@@ -52,6 +52,8 @@ if (review) handToAPerson(); else actOn(action);
 git clone https://github.com/BruceLanLan/gatecraft && cd gatecraft
 npm run ui                        # http://127.0.0.1:4747
 ```
+
+也可以不克隆：`npx -y -p git+https://github.com/BruceLanLan/gatecraft.git gatecraft`。在本机运行时，你自己的 key 会从你的电脑直接发给模型，你电脑上的模型（Ollama、LM Studio）也能直接用。
 
 **在你的 agent 里**——见下面的 [MCP](#接你自己的-agentmcp)。
 
@@ -106,17 +108,26 @@ flowchart LR
 
 ## 接你自己的 agent（MCP）
 
+不用克隆仓库——有 Node 20+ 和 git 就行。在你的项目里：
+
 ```
-claude mcp add gatecraft -- node /path/to/gatecraft/scripts/mcp.mjs --out ./gatecraft-out
+claude mcp add gatecraft -- npx -y -p git+https://github.com/BruceLanLan/gatecraft.git gatecraft-mcp --out ./gatecraft-out
 ```
 
-其它客户端：`{ "mcpServers": { "gatecraft": { "command": "node", "args": ["/path/to/gatecraft/scripts/mcp.mjs", "--out", "./gatecraft-out"] } } }`。然后跟 agent 说：「用 gatecraft 把我们代码里自动退款那个判断冻结下来。」
+Codex、Cursor 等其它客户端，在 MCP 配置里写同一条命令：
+
+```json
+{ "mcpServers": { "gatecraft": { "command": "npx", "args": ["-y", "-p", "git+https://github.com/BruceLanLan/gatecraft.git", "gatecraft-mcp", "--out", "./gatecraft-out"] } } }
+```
+
+然后跟 agent 说：「用 gatecraft 把我们代码里自动退款那个判断冻结下来。」agent 会先调用 `gatecraft_decision_guide`（文件格式、一个完整示例和整个流程），写出这个决策，把二十道题交给**你**来答，导出模块，再写一个把你的数据转成编码的小函数，把它接进代码。
 
 | 工具 | 做什么 |
 |---|---|
+| `gatecraft_decision_guide` | 文件格式、完整示例、流程，以及怎么把模块接进代码 |
 | `gatecraft_decision_review` | 把决策读回成人话，并列出要检查的地方 |
 | `gatecraft_decision_situations` | 列出所有情况，让 agent 来答 |
-| `gatecraft_decision_fill` | 填表、冻结、证明——`rule`、`answers`（agent 自己的答案）或 `jev` |
+| `gatecraft_decision_fill` | 填表、冻结、证明——`rule`、`answers`（agent 自己的答案；每种情况答三遍会按一致率计分）或 `jev`（你的 key，或免费次数） |
 | `gatecraft_decision_anchors` | 抽出二十道题——**给你答**，不是给 agent 答 |
 | `gatecraft_decision_calibrate` | 用你的答案扫描门槛 |
 | `gatecraft_decision_decide` | 在被证明的电路上跑一种情况 |

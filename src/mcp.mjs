@@ -34,6 +34,12 @@ const CODES = { type: "object", additionalProperties: { type: "integer", minimum
 
 export const TOOLS = [
   {
+    name: "gatecraft_decision_guide",
+    title: "How to write a decision for gatecraft",
+    description: "Read this first. The exact format of a decision file (a codebook), the rules it must follow, a complete worked example, how to pick the fields and the safe choice, and how to wire the exported module into the program afterwards. Takes no arguments.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
     name: "gatecraft_decision_review",
     title: "Read a decision back",
     description: "Check a decision file and read it back in plain sentences, with the things a person must look at before anything is spent: buckets that look like they need free text, identity, the clock or the network (the wall this tool stops at), buckets that do not say where their value comes from, and the safe action, which a model drafting this tends to choose as the least surprising option instead of the least damaging. Bit widths too small for their own codes are widened and reported. Show the notes to the person; do not decide them yourself.",
@@ -48,7 +54,7 @@ export const TOOLS = [
   {
     name: "gatecraft_decision_fill",
     title: "Fill and freeze a decision",
-    description: "Answer every legal situation, build the table, compile it to a NAND circuit and prove the circuit equals the table on every row (and again with Yosys when it is installed). with=\"rule\" uses an expression over the fields (the spec's own rule if none is given) - free and exact, but a decision you can write as a rule is one you should ship as an if-statement. with=\"answers\" takes the agent's own answers: [{ given: {field: code}, choice, confidence 0-1 }] for every situation from gatecraft_decision_situations; a missing row reviews. with=\"jev\" asks the typed decision model with the key on this machine. Returns the bundle directory the other tools take. The model's answers stay in the bundle; do not read them out to the person you are about to survey.",
+    description: "Answer every legal situation, build the table, compile it to a NAND circuit and prove the circuit equals the table on every row (and again with Yosys when it is installed). with=\"rule\" uses an expression over the fields (the spec's own rule if none is given) - free and exact, but a decision you can write as a rule is one you should ship as an if-statement. with=\"answers\" takes the agent's own answers: [{ given: {field: code}, choice, confidence 0-1 }] for every situation from gatecraft_decision_situations; a missing row reviews. Answer each situation three times if you can and pass them all - several answers for one situation are scored by how often they agree, which was measured to be far more informative than a stated confidence. with=\"jev\" asks the typed decision model with the key on this machine. Returns the bundle directory the other tools take. The model's answers stay in the bundle; do not read them out to the person you are about to survey.",
     inputSchema: {
       type: "object",
       properties: {
@@ -94,6 +100,60 @@ export const TOOLS = [
   },
 ];
 
+// A complete decision, small enough to read at a glance and legal as written.
+const EXAMPLE = {
+  name: "retry-call",
+  scene: "A client calls a payment API. Retrying a request that will never succeed wastes time and can double-charge; giving up on one that would have succeeded loses a sale.",
+  question: "Should the client retry this failed request?",
+  observe: {
+    status: { width: 2, raw: "the failure class the HTTP client already reports", values: { 0: "timed out, no response", 1: "a 5xx server error", 2: "a 4xx client error", 3: "429, rate limited" } },
+    attempts: { width: 2, raw: "the retry counter the client keeps", values: { 0: "first failure", 1: "failed twice", 2: "failed three or more times" } },
+    idempotent: { width: 1, raw: "whether the request carries an idempotency key", values: { 0: "no idempotency key", 1: "has an idempotency key" } },
+  },
+  act: { choices: { retry: "retry after a short wait", give_up: "stop and report the failure" }, safe: "give_up" },
+  threshold: 0.7,
+};
+
+const GUIDE = `gatecraft freezes ONE small decision a program makes over and over into a table proven on every
+input, checks it against a person, and exports a dependency-free module the program imports.
+
+WHAT A DECISION FILE LOOKS LIKE (a "codebook"):
+${JSON.stringify(EXAMPLE, null, 2)}
+
+RULES
+- observe: 1-6 fields, each { width: bits, raw, values }. width 1-3 bits; total across fields <= 16 bits
+  (8-10 is typical). values maps a code (as a string key "0", "1", ...) to a plain-language phrase.
+  A code with no phrase is ILLEGAL: the circuit answers it with the safe choice and review=true, always.
+- raw: how the PROGRAM computes the code from what it already has - a sensor, a field, a counter,
+  a stored flag. The program does the bucketing; gatecraft only sees codes. If a field would need
+  reading free text, recognising a person, the clock or a network call, it is outside what gatecraft
+  does: bucket it into something concrete first, or drop it.
+- act.choices: 2-4 options, name -> phrase. act.safe: the option that does LEAST DAMAGE if taken by
+  mistake - not the most common one, not the least surprising one.
+- question: the one question asked about every situation. scene (optional but worth it): two or
+  three sentences on what the system is and what each kind of mistake costs.
+- threshold (optional, default 0.7) and rule (optional): an expression over the fields naming a
+  choice, e.g. "status == 2 ? give_up : attempts == 2 ? give_up : retry".
+
+FLOW
+1. Write the file; call gatecraft_decision_review and SHOW THE PERSON its notes (the safe choice,
+   buckets that may cross the wall). Fix what they say.
+2. gatecraft_decision_fill: with="jev" (the decision model: the key in ~/.config/gatecraft/jev.token,
+   or a few free fills), with="rule", or with="answers" (you answer every situation from
+   gatecraft_decision_situations - if you can, answer each THREE times and pass all of them: the
+   confidence is then how often you agreed with yourself, which is far more informative than a
+   number you state).
+3. gatecraft_decision_anchors, then ASK THE PERSON those twenty situations, one at a time, in those
+   words, without saying what the model or you would answer. Do not answer them yourself.
+4. gatecraft_decision_calibrate with their answers and answered_by: "person". Report the verdict
+   plainly - "do not delegate" is a real and common answer.
+5. gatecraft_decision_export, then wire it in: copy the module into the project, write ONE small
+   function that turns the program's own data into the codes (exactly the buckets the "raw" lines
+   describe), and replace the model call with:
+     const { action, review } = decide(codes);
+     if (review) -> hand the case to a person (or keep the old path); else -> do action.
+   decide() throws on a code outside a field's width, so a bucketing bug fails loudly.`;
+
 const readJson = (file) => JSON.parse(readFileSync(file, "utf8"));
 const writeJson = (file, value) => writeFileSync(file, `${JSON.stringify(value, null, 1)}\n`);
 
@@ -126,6 +186,8 @@ export function createGatecraftMcp({ outRoot = resolve("gatecraft-out"), key = (
   };
 
   const tools = {
+    gatecraft_decision_guide: () => ({ text: GUIDE, data: { example: EXAMPLE } }),
+
     gatecraft_decision_review: ({ spec }) => {
       const { spec: fixed, widened, d } = settled(spec);
       const { legal, rows, notes } = reviewDraft(fixed);
@@ -161,13 +223,30 @@ export function createGatecraftMcp({ outRoot = resolve("gatecraft-out"), key = (
         filler = ruleFiller(d, expression);
       } else if (source === "answers") {
         if (!Array.isArray(answers) || !answers.length) throw new ToolError("with=answers needs answers: [{ given, choice, confidence }] for the situations from gatecraft_decision_situations");
+        // Several answers for the same situation are scored by how often they agree - the rule
+        // measured to beat a model's own confidence (findings, item 2). A single answer keeps the
+        // confidence the agent gave, which is recorded as self-reported and was measured to carry
+        // little; the anchors are what catch a table that is confidently wrong either way.
         const by = new Map();
         for (const a of answers) {
           const row = encodeRow(d, a.given ?? {});
-          by.set(row, { choice: a.choice, confidence: Number.isFinite(a.confidence) ? Math.min(1, Math.max(0, a.confidence)) : 0.5, source: "agent" });
+          if (!by.has(row)) by.set(row, []);
+          by.get(row).push(a);
+        }
+        const scored = new Map();
+        for (const [row, list] of by) {
+          if (list.length === 1) {
+            const a = list[0];
+            scored.set(row, { choice: a.choice, confidence: Number.isFinite(a.confidence) ? Math.min(1, Math.max(0, a.confidence)) : 0.5, source: "agent" });
+          } else {
+            const votes = new Map();
+            for (const a of list) votes.set(a.choice, (votes.get(a.choice) ?? 0) + 1);
+            const [choice, won] = [...votes].sort((x, y) => y[1] - x[1])[0];
+            scored.set(row, { choice, confidence: Math.round((1000 * won) / list.length) / 1000, source: "agent", asks: list.length });
+          }
         }
         filler = (codes) => {
-          const answer = by.get(encodeRow(d, codes));
+          const answer = scored.get(encodeRow(d, codes));
           if (!answer) throw new Error("no answer was given for this situation");
           return answer;
         };
@@ -312,7 +391,7 @@ export function createGatecraftMcp({ outRoot = resolve("gatecraft-out"), key = (
           protocolVersion: PROTOCOL_VERSIONS.includes(asked) ? asked : PROTOCOL_VERSIONS[0],
           capabilities: { tools: {} },
           serverInfo: { name: "gatecraft", version: packageVersion() },
-          instructions: "gatecraft freezes one small, repeated decision into a table proven on every row. Flow: gatecraft_decision_review (show the notes to the person) -> gatecraft_decision_fill -> gatecraft_decision_anchors (the PERSON answers these, not you) -> gatecraft_decision_calibrate -> gatecraft_decision_export. Observations must already be a few discrete codes; free text, identity, the clock and the network are outside what this does.",
+          instructions: "gatecraft freezes one small, repeated decision into a table proven on every row. Start with gatecraft_decision_guide: it has the file format, a worked example and the flow. Flow: gatecraft_decision_review (show the notes to the person) -> gatecraft_decision_fill -> gatecraft_decision_anchors (the PERSON answers these, not you) -> gatecraft_decision_calibrate -> gatecraft_decision_export, then wire the module in with one bucketing function. Observations must already be a few discrete codes; free text, identity, the clock and the network are outside what this does.",
         });
       }
       case "ping": return reply({});
