@@ -63,7 +63,7 @@ flowchart LR
   B --> C["<b>Prove</b><br/>NAND circuit = table<br/>on every input, twice"]
   C --> D["<b>Check</b><br/>you answer 20<br/>without seeing the model"]
   D --> E{"<b>Verdict</b>"}
-  E -->|delegate| F["<b>4 KB module</b><br/>import { decide }"]
+  E -->|delegate| F["<b>4 KB module</b><br/>import it and call decide"]
   E -->|write an if instead| G["a plain rule"]
   E -->|do not delegate| H["keep it with people"]
 ```
