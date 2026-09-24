@@ -19,7 +19,7 @@ if (review) handToAPerson(); else actOn(action);
 | cost per call | tokens | **zero** |
 | when it is unsure | answers anyway | **raises its hand** (`review = 1`) and hands it to a person |
 
-**It may also tell you not to use it.** Of six real decisions measured this way, two were ones the model gets confidently wrong — and both passed the row-by-row proof, the independent proof, a repeat and a high confidence. Only the twenty blind questions caught it, which is why that step is a gate, not an option.
+**It may also tell you not to use it.** Of six real decisions checked this way, two were ones where the filling model disagreed with the blind answers exactly where it was most confident — and both passed the row-by-row proof, the independent proof, a repeat and a high confidence. Only the twenty blind questions caught it, which is why that step is a gate, not an option. One honest caveat: those blind answers were written by an AI assistant acting as an independent judge, not yet by a person — so this shows what the check can catch, not yet how often a model is wrong by a human's standard.
 
 ## What it looks like
 

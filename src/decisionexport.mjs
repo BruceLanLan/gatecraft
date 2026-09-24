@@ -75,7 +75,7 @@ export function decisionModule(frozen, { calibration = null, name } = {}) {
 // What is guaranteed: this table is what was proven, row by row and then again by Yosys.
 // What is NOT: that the table is the policy you want. ${policy.checkedAgainstAPerson
     ? `Here ${policy.held}/${policy.anchors} situations settled by a person in advance agree with it${policy.contradicted ? `, and ${policy.contradicted} do not - see anchors.json` : ""}.`
-    : `NOBODY HAS CHECKED THAT. Two of six decisions measured this way turned out to be ones the model gets confidently wrong, and every other check passed on both.`}
+    : `NOBODY HAS CHECKED THAT. Two of six decisions checked this way (blind answers by an independent judge - so far an AI assistant, not yet a person) turned out to be ones the filling model gets confidently wrong, and every other check passed on both.`}
 ${calibration ? `// Calibrated ${JSON.stringify(calibration.verdict)}${(calibration.confidenceValues ?? 2) <= 1 ? " - every row carries the same certainty, so no threshold applies" : ` with the confidence threshold at ${calibration.calibratedThreshold}`}; it decides ${(100 * (calibration.decides ?? 0)).toFixed(0)}% of situations and hands the rest over.\n` : ""}//
 // codebook ${d.codebookSha256}
 // fill     ${frozen.certificate.decision.fillSha256}

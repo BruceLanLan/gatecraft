@@ -289,8 +289,9 @@ export function decisionTable(d, fill) {
 }
 
 // `anchorFile` is not optional decoration and the certificate says so when it is missing.
-// Measured 2026-09-21: of six decisions whose anchors were answered blind, TWO were ones where
-// the model disagrees with the person exactly where it is most confident - and those two
+// Measured 2026-09-21: of six decisions whose anchors were answered blind (by the AI assistant
+// running the measurement as an independent judge - no person has answered them yet), TWO were
+// ones where the model disagrees with the judge exactly where it is most confident - and those two
 // passed every other check this pipeline has. Row-by-row proof, a second independent proof, a
 // reproducible answer and a high confidence all held while the circuit steadily did something
 // nobody wanted. A certificate that reports only those four is reporting the half that cannot
@@ -322,7 +323,7 @@ export function freezeDecision(d, fill, { overrides = null, steps, seed, anchorF
   // The anchor result goes in last because it needs the frozen table to check against.
   frozen.certificate.decision.policy = anchorFile
     ? (() => { const r = checkAnchors(d, frozen, anchorFile); return { checkedAgainstAPerson: true, anchors: r.checked, held: r.checked - r.broken, contradicted: r.broken, contradictedOnActedRows: r.contradictedOnActedRows, contradictedButReviewing: r.contradictedButReviewing, unanswered: r.unanswered }; })()
-    : { checkedAgainstAPerson: false, warning: "nobody has checked this table against a person's own judgements. Two of six decisions measured this way turned out to be ones the model gets confidently wrong, and no other check in this pipeline detects that." };
+    : { checkedAgainstAPerson: false, warning: "nobody has checked this table against a person's own judgements. Two of six decisions checked this way (blind answers by an independent judge - so far an AI assistant, not yet a person) turned out to be ones the filling model gets confidently wrong, and no other check in this pipeline detects that." };
   return frozen;
 }
 

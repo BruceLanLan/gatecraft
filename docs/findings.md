@@ -56,9 +56,11 @@ What stopped them: text (230), lists (150), time (143), a person's identity (95)
 
 ## 5. Every automated check can pass while the decision is wrong
 
-*2026-09-21, six real decisions, each checked against twenty situations a person answered without seeing the model's answers.*
+*2026-09-21, six real decisions, each checked against twenty situations answered blind, without seeing the model's answers. **Who answered matters, so it is said first: the AI assistant running the measurement, acting as an independent judge — not the repository's owner, and not the model that filled the table. No person has answered these yet.***
 
-**Two of the six** were decisions the model gets confidently wrong. Both passed the row-by-row proof, the independent Yosys proof, a repeat, and a high confidence — and then consistently did what the person disagreed with.
+In **two of the six**, the filling model disagreed with the blind answers exactly where it was most confident. Both passed the row-by-row proof, the independent Yosys proof, a repeat, and a high confidence — and then consistently did what the judge disagreed with.
+
+What this does and does not show. It shows that a disagreement of this kind exists and that **only** the blind answers detect it: every other check passed. It does not show that the model is wrong by a human's standard — the judge is itself a model, and item 1 found two models agree about as often as one agrees with itself. The measurement that would settle it — the same questions answered by people who own these decisions — has not been run.
 
 **What changed:** the twenty blind questions (anchors) became a gate rather than an option. Calibration can end in "do not delegate", and export refuses a decision calibrated that way. When an agent answers the anchors instead of a person, the result is labelled a consistency check and the exported module says nobody checked it.
 
@@ -66,7 +68,7 @@ What stopped them: text (230), lists (150), time (143), a person's identity (95)
 
 *2026-09-20 to 21, 55 real decisions.*
 
-The tool pays off only where a short rule fails **and** the model settles most situations. Pre-registered before measuring: under 5% of decisions would mean "no product"; 5–20% "a narrow band". Result: **8 of 55 = 15%** (95% interval about 7–27%), and that is an upper bound — of the three band members later checked against a person, one did not hold.
+The tool pays off only where a short rule fails **and** the model settles most situations. Pre-registered before measuring: under 5% of decisions would mean "no product"; 5–20% "a narrow band". Result: **8 of 55 = 15%** (95% interval about 7–27%), and that is an upper bound — of the three band members later checked against blind answers (written by the same AI judge as item 5), one did not hold.
 
 **What changed:** the README says plainly that who needs this is unproven.
 

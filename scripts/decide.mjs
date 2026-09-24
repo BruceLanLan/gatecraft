@@ -155,7 +155,7 @@ run(USAGE, async () => {
       for (const a of report.anchors.filter((x) => !x.held)) console.log(`    ! ${a.why ?? "anchor"}: allowed ${a.allow.join("/")}, the table says ${a.got}${a.reviewing ? " (but the row reviews)" : ""}`);
     } else {
       console.log(`  policy: NOT CHECKED AGAINST A PERSON. The proof below relates the circuit to the table and says nothing about whether the table is the policy you want.`);
-      console.log(`    Two of six decisions measured this way were ones the model gets confidently wrong, and every other check here passed on both.`);
+      console.log(`    Two of six decisions checked this way (blind answers by an independent judge - so far an AI assistant, not yet a person) turned out to be ones the filling model gets confidently wrong, and every other check here passed on both.`);
       console.log(`    node scripts/decide.mjs ask --spec <spec> --out ${out}`);
     }
 

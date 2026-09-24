@@ -63,7 +63,7 @@ export const TOOLS = [
   {
     name: "gatecraft_decision_anchors",
     title: "Draw twenty questions for the person",
-    description: "Draw situations, stratified across the fill's confidence, for THE PERSON to answer - not you. Put each one to the human user in the codebook's words, without saying what the model or you would answer, and record what they say: one choice, several when more than one is defensible, or nothing to skip. Two of six decisions measured this way were ones the model gets confidently wrong while passing every proof, repeat and confidence check; a model answering these cannot catch that.",
+    description: "Draw situations, stratified across the fill's confidence, for THE PERSON to answer - not you. Put each one to the human user in the codebook's words, without saying what the model or you would answer, and record what they say: one choice, several when more than one is defensible, or nothing to skip. Of six decisions checked this way, two were ones where the filling model disagreed with the blind answers exactly where it was most confident while passing every proof, repeat and confidence check. Those answers were written by an AI judge; answers from the person who owns the decision are the ones that count.",
     inputSchema: { type: "object", properties: { bundle: BUNDLE, count: { type: "integer", minimum: 5, maximum: 100, default: 20 } }, required: ["bundle"] },
   },
   {
