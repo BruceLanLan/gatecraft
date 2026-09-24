@@ -1,0 +1,13 @@
+# The website, gatecraft.fun: the page from ui/ served as static files, built by
+# `node scripts/build-site.mjs`. No script, no secrets - the page runs in the visitor's browser.
+name = "gatecraft-site"
+compatibility_date = "2026-09-01"
+workers_dev = false
+routes = [
+  { pattern = "gatecraft.fun", custom_domain = true },
+  { pattern = "www.gatecraft.fun", custom_domain = true },
+]
+
+[assets]
+directory = "../out/site"
+not_found_handling = "404-page"

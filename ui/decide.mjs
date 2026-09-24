@@ -15,13 +15,31 @@ import { diagramLayout } from "./model.mjs";
 import { codebookPrompt, settleWidths } from "../src/draft.mjs";
 import { modelRequest, replyText, specFromReply } from "../src/describe.mjs";
 
+// Two homes for the same page. Run locally (npm run ui), it talks to this machine's server,
+// which holds the decision-model key if you have one. Served as a plain website (gatecraft.fun),
+// there is no server: the very same methods are imported and run here in the browser, with no
+// key, so a fill uses the free trial or your own model. Which one is decided once, by asking.
+let local = null;
+const hasServer = () => (local ??= fetch(new URL("../api", import.meta.url))
+  .then((r) => (r.ok ? r.json() : null))
+  .then((body) => Boolean(body?.ok))
+  .catch(() => false));
+let inPage = null;
+const pageApi = () => (inPage ??= import("../src/api.mjs"));
+
 const api = async (method, params = {}) => {
-  const response = await fetch(new URL("../api", import.meta.url), {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ method, params }),
-  });
-  const body = await response.json();
+  if (await hasServer()) {
+    const response = await fetch(new URL("../api", import.meta.url), {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ method, params }),
+    });
+    const body = await response.json();
+    if (!body.ok) throw new Error(body.error?.message ?? `${method} failed`);
+    return body.result;
+  }
+  const { handleApi } = await pageApi();
+  const { body } = await handleApi({ method, params }, { decisionKey: null });
   if (!body.ok) throw new Error(body.error?.message ?? `${method} failed`);
   return body.result;
 };

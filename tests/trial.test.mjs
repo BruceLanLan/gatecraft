@@ -133,6 +133,18 @@ test("on a host of its own it answers at the root, while the shared site keeps i
   assert.equal((await w.from("198.51.100.5")("https://shared.test/start", { method: "POST", body: "{}" })).status, 404, "the shared site's own paths stay its own");
 });
 
+test("the website can call it from the browser, and a person opening it is sent to the tool", async () => {
+  const w = world();
+  const pre = await handle(new Request("https://trial.test/start", { method: "OPTIONS" }), w.env);
+  assert.equal(pre.status, 204);
+  assert.match(pre.headers.get("access-control-allow-headers"), /authorization/);
+  const status = await handle(new Request("https://trial.test/status", { headers: { "cf-connecting-ip": "203.0.113.7" } }), w.env);
+  assert.equal(status.headers.get("access-control-allow-origin"), "*");
+  const root = await handle(new Request("https://trial.test/"), w.env);
+  assert.equal(root.status, 302);
+  assert.equal(root.headers.get("location"), "https://gatecraft.fun/");
+});
+
 test("with no trial configured, a machine without a key is told how to get one", async () => {
   const r = await handleApi({ method: "decision.fill", params: { spec } }, { decisionKey: null, trial: null });
   assert.equal(r.body.ok, false);

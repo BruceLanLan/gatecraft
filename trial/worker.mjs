@@ -38,7 +38,11 @@ const settings = (env) => ({
   minutes: Number(env.TOKEN_MINUTES ?? 20),
 });
 
-const json = (status, body) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
+// The website (gatecraft.fun) runs entirely in the browser and calls this directly, so every
+// answer carries CORS headers. That is safe here: nothing rides on cookies, a token only works
+// from the address that started it, and the counts are per address whichever page asks.
+const CORS = { "access-control-allow-origin": "*", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-allow-headers": "authorization, content-type", "access-control-max-age": "86400" };
+const json = (status, body) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...CORS } });
 
 // What a person is told when the free fills are gone, or were never there. Always the same
 // three ways out, because the point of the trial is to lead somewhere.
@@ -69,6 +73,7 @@ export async function handle(request, env, { now = Date.now(), fetchJev = fetch 
   // A missing secret would not fail loudly on its own: HMAC over the string "undefined" works,
   // and tokens signed with it could be forged by anyone who read this file. Refuse instead.
   if (!env.SALT || !env.TOKEN_SECRET || !env.JEV_KEY || !env.TRIAL) return json(503, { error: "not_configured", message: `The free trial is not available right now. ${WAYS_OUT}` });
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
   const url = new URL(request.url);
   // Two ways to be mounted. On a host of its own (ROOT_HOSTS, e.g. trial.gatecraft.fun) it
   // answers at the root. Anywhere else it sits under BASE_PATH (e.g. "/gatecraft" on a site it
@@ -120,12 +125,11 @@ export async function handle(request, env, { now = Date.now(), fetchJev = fetch 
     // anything else this endpoint would not have done anyway.
     if (body?.model !== "jev-latest" || typeof body.state !== "object" || typeof body.questions !== "object") return json(400, { error: "bad_request", message: "expected { model: \"jev-latest\", state, questions }" });
     const answer = await fetchJev(JEV, { method: "POST", headers: { authorization: `Bearer ${env.JEV_KEY}`, "content-type": "application/json" }, body: JSON.stringify({ model: body.model, state: body.state, questions: body.questions }) });
-    return new Response(answer.body, { status: answer.status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
+    return new Response(answer.body, { status: answer.status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...CORS } });
   }
 
-  if (request.method === "GET" && path === "/") {
-    return new Response(`gatecraft free trial: ${s.perIp} free fills per address, then bring your own model or key.\nhttps://github.com/BruceLanLan/gatecraft\n`, { headers: { "content-type": "text/plain; charset=utf-8" } });
-  }
+  // A person who opens this address in a browser wants the tool, not the service behind it.
+  if (request.method === "GET" && path === "/") return Response.redirect("https://gatecraft.fun/", 302);
   return json(404, { error: "not_found" });
 }
 

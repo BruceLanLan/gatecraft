@@ -24,7 +24,12 @@ export class ExportRefused extends Error {
   }
 }
 
-const b64 = (bytes) => Buffer.from(bytes).toString("base64");
+// Base64 without Buffer, so the same exporter runs in the page when there is no local server.
+const b64 = (bytes) => {
+  let text = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) text += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(text);
+};
 
 export function decisionModule(frozen, { calibration = null, name } = {}) {
   const d = frozen.decision;

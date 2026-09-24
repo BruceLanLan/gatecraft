@@ -11,7 +11,7 @@
 // same Worker still answers.
 export const DEFAULT_TRIAL_URL = "https://trial.gatecraft.fun";
 
-export function trialUrl(env = process.env) {
+export function trialUrl(env = globalThis.process?.env ?? {}) {
   if (/^(off|0|false|no)$/i.test(env.GATECRAFT_TRIAL ?? "")) return null;
   const url = (env.GATECRAFT_TRIAL_URL ?? DEFAULT_TRIAL_URL ?? "").trim().replace(/\/+$/, "");
   return url || null;

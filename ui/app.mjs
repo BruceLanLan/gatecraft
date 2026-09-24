@@ -1682,6 +1682,21 @@ function compileAside(job) {
   });
 }
 
+// Where a built app is shown. The local server holds it for a moment and serves it back, because
+// under that server's policy a blob would lose the app's own style and script. The website has no
+// such server and no such policy, so there a blob is exactly right.
+async function previewUrl(html) {
+  try {
+    const answer = await fetch(new URL("../preview", import.meta.url), { method: "POST", headers: { "content-type": "text/html" }, body: html });
+    const body = await answer.json();
+    if (body.ok) return body.result.url;
+    if (answer.status !== 404 && answer.status !== 405) throw new Error(body.error?.message ?? "preview failed");
+  } catch (error) {
+    if (!(error instanceof SyntaxError) && !/preview failed|Failed to fetch/.test(error.message)) throw error;
+  }
+  return URL.createObjectURL(new Blob([html], { type: "text/html" }));
+}
+
 async function previewApp(entry) {
   gallery.busy = entry.key;
   gallery.error = null;
@@ -1689,14 +1704,12 @@ async function previewApp(entry) {
   if (state.view === "decide") renderDecide($("#decide"), t);
   try {
     const built = await compileAside({ kind: "expr", spec: entry.spec, name: entry.name, steps: entry.steps, seed: entry.seed, sentence: entry.sentence, lang: state.lang });
-    const answer = await fetch(new URL("../preview", import.meta.url), { method: "POST", headers: { "content-type": "text/html" }, body: built.files["app.html"] });
-    const body = await answer.json();
-    if (!body.ok) throw new Error(body.error?.message ?? "preview failed");
+    const url = await previewUrl(built.files["app.html"]);
     gallery.showing = {
       key: entry.key,
       name: entry.name,
       sentence: entry.sentence,
-      url: body.result.url,
+      url,
       html: built.files["app.html"],
       nand: built.certificate.circuit.nand,
       latch: built.certificate.circuit.latch,
@@ -2244,10 +2257,7 @@ function appCard(r) {
   // this page's policy and lose the app's own style and script.
   const show = async () => {
     try {
-      const answer = await fetch(new URL("../preview", import.meta.url), { method: "POST", headers: { "content-type": "text/html" }, body: html });
-      const body = await answer.json();
-      if (!body.ok) throw new Error(body.error?.message ?? "preview failed");
-      frame.src = body.result.url;
+      frame.src = await previewUrl(html);
       frame.hidden = false;
     } catch (error) {
       flow.note = { kind: "error", text: `${t("appPreview")}: ${error.message}` };
