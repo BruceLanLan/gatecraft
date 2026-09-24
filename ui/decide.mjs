@@ -12,6 +12,8 @@ import { decodeCircuit, hexToBytes, simulate } from "../src/netlist.mjs";
 import { decisionPinNames, fillDecision, parseDecision } from "../src/decision.mjs";
 import { majorityFiller, textFiller } from "../src/chatfill.mjs";
 import { diagramLayout } from "./model.mjs";
+import { renderLanding } from "./landing.mjs";
+import { createTour } from "./tour.mjs";
 import { codebookPrompt, settleWidths } from "../src/draft.mjs";
 import { modelRequest, replyText, specFromReply } from "../src/describe.mjs";
 
@@ -134,6 +136,7 @@ const el = (tag, className, text) => {
 
 function card(title, step) {
   const section = el("section", "card");
+  section.dataset.step = String(step);
   const head = el("h2", "step");
   head.append(el("span", "num", String(step)), el("span", null, title));
   section.append(head);
@@ -149,15 +152,47 @@ const EXAMPLES = [
   ["refund-call", "decEx_refundCall"],
 ];
 
-function renderLead(root, t, redraw) {
-  const lead = el("section", "card lead");
-  lead.append(el("h1", "lead-title", t("decLeadTitle")));
-  lead.append(el("p", "lead-problem", t("decLeadProblem")));
-  lead.append(el("p", null, t("decLeadWhat")));
-  lead.append(el("p", "lead-steps", t("decLeadSteps")));
-  lead.append(el("p", "warn", t("decLeadWall")));
-  lead.append(el("p", "warn", t("decLeadHonest")));
-  return lead;
+// The flow's actions, for the guided tour: the same steps a visitor takes by clicking.
+async function loadExample(name) {
+  const spec = await (await fetch(new URL(`../examples/${name}.decision.json`, import.meta.url))).json();
+  decideState.specText = JSON.stringify(spec, null, 2);
+  decideState.read = decideState.fill = decideState.fillStats = decideState.frozen = decideState.sheet = decideState.calibration = null;
+  decideState.error = "";
+}
+
+// After a fill, the rest is the same whoever answered: freeze and prove, and draw the questions
+// for the person from the confidences the fill carries.
+async function freezeAndDraw(fill) {
+  decideState.fill = fill;
+  decideState.codes = {};
+  decideState.frozen = await api("decision.freeze", { spec: decideState.spec, fill });
+  decideState.sheet = (await api("decision.anchors", { spec: decideState.spec, fill, count: 20 })).sheet;
+  decideState.at = 0;
+}
+
+async function fillByRule() {
+  const out = await api("decision.fill", { spec: decideState.spec, rule: decideState.spec.rule });
+  decideState.fillStats = out;
+  decideState.filledBy = "rule";
+  await freezeAndDraw(out.fill);
+}
+
+let tour = null;
+function tourFor(t) {
+  tour ??= createTour({
+    t,
+    actions: { loadExample, readBack: readBackNow, fillByRule, poke: async (codes) => { decideState.codes = { ...(decideState.codes ?? {}), ...codes }; } },
+    rerender: () => redrawDecide(),
+  });
+  return tour;
+}
+
+export function redrawDecide() { if (keyTarget) renderDecide(keyTarget.root, keyTarget.t); }
+
+function startOwn() {
+  const box = document.querySelector("#decide .draft-input");
+  box?.scrollIntoView({ block: "center", behavior: "smooth" });
+  box?.focus({ preventScroll: true });
 }
 
 async function readBackNow() {
@@ -281,16 +316,6 @@ function renderFill(root, t, redraw) {
   // states asks nobody, needs no key, and still carries the whole rest of the flow - freeze,
   // proof, poke it, twenty questions. It is also honest about what it is: a decision you could
   // already write as a rule is one the calibration at the end ought to refuse.
-  // After the fill, the rest is the same whoever answered: freeze and prove on the server, and
-  // draw the questions for the person from the confidences the fill carries.
-  const freezeAndDraw = async (fill) => {
-    decideState.fill = fill;
-    decideState.codes = {};
-    decideState.frozen = await api("decision.freeze", { spec: decideState.spec, fill });
-    decideState.sheet = (await api("decision.anchors", { spec: decideState.spec, fill, count: 20 })).sheet;
-    decideState.at = 0;
-  };
-
   const fillWith = async (rule) => {
     decideState.busy = "fill"; decideState.error = ""; renderDecide(root, t);
     try {
@@ -643,12 +668,13 @@ export function renderDecide(root, t) {
     bar.append(el("span", "hint", t("decKept")), again);
     root.append(bar);
   }
-  if (!decideState.read) root.append(renderLead(root, t, redraw));
+  if (!decideState.read) root.append(renderLanding(t, { draw: drawCircuit, onTour: () => tourFor(t).start(), onOwn: startOwn }));
   root.append(renderSpec(root, t, () => renderDecide(root, t)));
   if (decideState.read) root.append(renderFill(root, t, () => renderDecide(root, t)));
   if (decideState.sheet) root.append(renderAsk(root, t, () => renderDecide(root, t)));
   if (decideState.sheet) root.append(renderVerdict(root, t, () => renderDecide(root, t)));
   if (decideState.error) root.append(el("p", "warn", decideState.error));
+  tour?.refocus();
 }
 
 export async function probeKey() {

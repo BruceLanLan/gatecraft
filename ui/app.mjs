@@ -2456,12 +2456,19 @@ async function init() {
     }, () => {});
   }
   // The same address answers a local API; say so when it is switched on.
+  // No API at this address means the page is being served as the website (gatecraft.fun), not by
+  // npm run ui on this machine - so the footer must not claim "runs on this computer".
+  const asWebsite = () => {
+    const note = document.querySelector('.foot [data-i18n="footer"]');
+    if (note) { note.dataset.i18n = "footerSite"; note.textContent = t("footerSite"); }
+  };
   fetch(new URL("../api", import.meta.url)).then((r) => (r.ok ? r.json() : null)).then((body) => {
+    if (!body?.ok) asWebsite();
     if (body?.ok) {
       run.api = body.result;
       renderHeader();
     }
-  }, () => {});
+  }, asWebsite);
   // Landing straight on the decision view means nothing has asked the server whether a key is
   // sitting in ~/.config yet, so the fill button would look ready and fail on click.
   if (state.view === "decide") probeKey().then(renderAll, () => {});

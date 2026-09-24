@@ -529,13 +529,6 @@ table.blocks th, table.blocks td { text-align: left; padding: 4px 8px; border-bo
 #decide .try-circuit .diagram { overflow-x: auto; max-width: 100%; }
 @media (max-width: 640px) { #decide .try-line { grid-template-columns: 1fr; gap: .2rem; } }
 
-/* The first screen: what this is, before it asks for a JSON file. */
-#decide .lead { display: grid; gap: .7rem; }
-#decide .lead-title { font-size: 22px; line-height: 1.35; font-weight: 650; margin: 0; max-width: 46ch; }
-#decide .lead p { font-size: 14px; line-height: 1.65; margin: 0; max-width: 72ch; }
-#decide .lead-problem { opacity: .8; }
-#decide .lead-steps { font-weight: 550; }
-#decide .lead .warn { opacity: .95; padding-left: .8rem; border-left: 2px solid currentColor; }
 #decide .examples { margin-top: .8rem; }
 #decide .draft { display: grid; gap: .45rem; margin: .8rem 0 1rem; }
 #decide .draft .hint { margin: 0; }
@@ -546,3 +539,84 @@ table.blocks th, table.blocks td { text-align: left; padding: 4px 8px; border-bo
 #decide .keys { font-size: 12px; opacity: .6; }
 #decide .examples .hint { flex-basis: 100%; margin: 0; }
 @media (max-width: 640px) { #decide .sit-line { grid-template-columns: 1fr; gap: .1rem; } }
+
+/* ---- the decision view's first screen ------------------------------------------------------
+   Left: what it is, in the serif the rest of gatecraft uses for headlines, and two ways in.
+   Right: the one bold thing on the page - a real proven circuit, running. Everything else is
+   quiet: a numbered strip (the flow really is a sequence), and a plain fit / no-fit list. */
+#decide .landing { display: grid; gap: 56px; margin: 8px 0 40px; }
+#decide .land-hero { display: grid; grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); gap: 40px; align-items: center; }
+#decide .land-copy { display: grid; gap: 18px; align-content: center; }
+#decide .land-title { margin: 0; font-family: var(--serif); font-size: clamp(32px, 4.2vw, 50px); line-height: 1.18; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+#decide .land-sub { margin: 0; font-size: 16px; line-height: 1.7; color: var(--muted); max-width: 58ch; }
+#decide .land-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
+#decide .land-note { margin: 0; font-size: 13px; color: var(--muted); }
+#decide .land-demo { display: grid; gap: 12px; padding: 20px; border-radius: 18px; background: var(--panel); border: 1px solid var(--line); box-shadow: 0 18px 50px -30px rgba(40, 25, 10, 0.35); min-height: 360px; align-content: start; }
+#decide .demo-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+#decide .demo-q { font-family: var(--serif); font-size: 17px; font-weight: 600; }
+#decide .demo-step { font-size: 12px; color: var(--muted); white-space: nowrap; }
+#decide .land-title span { display: block; }
+#decide .demo-situation { display: grid; grid-template-columns: max-content 1fr; gap: 3px 14px; margin: 0; font-size: 13px; }
+#decide .demo-situation dt { font-family: var(--mono); font-size: 11px; color: var(--muted); padding-top: 2px; }
+#decide .demo-situation dd { margin: 0; }
+#decide .demo-situation dd.unknown { font-family: var(--mono); font-size: 12px; color: var(--danger); }
+#decide .demo-answer { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; padding: 10px 12px; border-radius: 10px; background: var(--good-soft); }
+#decide .demo-answer strong { font-size: 16px; }
+#decide .demo-answer.reviewing { background: var(--warn-soft); }
+#decide .demo-label { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+#decide .demo-flag { font-size: 13px; color: var(--muted); }
+#decide .demo-answer.reviewing .demo-flag { color: var(--accent); font-weight: 600; }
+#decide .land-demo .diagram.fit svg { max-height: 320px; }
+#decide .land-demo .diagram.fit .node text { font-size: 10px; }
+#decide .demo-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+#decide .demo-proof { font-size: 12px; color: var(--good); }
+#decide .demo-next { font-size: 13px; }
+#decide .demo-loading { color: var(--muted); }
+
+#decide .section-title { margin: 0 0 18px; font-family: var(--serif); font-size: 26px; font-weight: 700; }
+#decide .how-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; border-top: 2px solid var(--ink); }
+#decide .how-step { display: grid; gap: 8px; align-content: start; padding: 16px 18px 4px 0; }
+#decide .how-step + .how-step { padding-left: 18px; border-left: 1px solid var(--line); }
+#decide .how-num { font-size: 13px; font-weight: 600; color: var(--accent); }
+#decide .how-step strong { font-size: 16px; }
+#decide .how-step p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--muted); }
+#decide .how-detail { font-size: 12px; color: var(--ink); opacity: .75; }
+
+#decide .fit-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+#decide .fit-col { padding: 18px 20px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel); }
+#decide .fit-col h3 { margin: 0 0 10px; font-size: 15px; }
+#decide .fit-col ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+#decide .fit-col li { position: relative; padding-left: 24px; font-size: 14px; line-height: 1.55; }
+#decide .fit-col li::before { position: absolute; left: 0; top: 0; font-weight: 700; }
+#decide .fit-yes li::before { content: "✓"; color: var(--good); }
+#decide .fit-no li::before { content: "–"; color: var(--danger); }
+#decide .fit-honest { margin: 14px 0 0; font-size: 13px; color: var(--muted); }
+#decide .fit-honest a { color: var(--accent); }
+
+@media (max-width: 900px) {
+  #decide .land-hero { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  #decide .how-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #decide .how-step, #decide .how-step + .how-step { padding: 16px 16px 12px 0; border-left: 0; border-bottom: 1px solid var(--line); }
+}
+@media (max-width: 560px) {
+  #decide .how-steps { grid-template-columns: minmax(0, 1fr); }
+  #decide .fit-cols { grid-template-columns: minmax(0, 1fr); }
+  #decide .land-demo { padding: 14px; min-height: 0; }
+  #decide .land-ctas button { flex: 1 1 100%; }
+}
+
+/* ---- the guided tour: a card in the corner, and a ring on the part of the page it is about. */
+.tour { position: fixed; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 50; width: min(380px, calc(100vw - 32px)); display: grid; gap: 10px; padding: 16px 18px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); box-shadow: 0 24px 60px -24px rgba(20, 12, 4, 0.5); }
+.tour-head { display: flex; justify-content: space-between; align-items: center; }
+.tour-count { font-size: 12px; color: var(--muted); }
+.tour-close { border: 0; background: transparent; font-size: 20px; line-height: 1; padding: 2px 6px; color: var(--muted); }
+.tour-title { margin: 0; font-family: var(--serif); font-size: 18px; }
+.tour-body { margin: 0; font-size: 14px; line-height: 1.65; }
+.tour-dots { display: flex; gap: 6px; }
+.tour-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+.tour-dots span.done { background: var(--muted); }
+.tour-dots span.on { background: var(--accent); }
+.tour-nav { display: flex; justify-content: flex-end; gap: 8px; }
+.tour-focus { outline: 3px solid var(--accent); outline-offset: 6px; border-radius: 12px; transition: outline-offset .2s ease; }
+@media (prefers-reduced-motion: reduce) { .tour-focus { transition: none; } }
+@media (max-width: 560px) { .tour { right: 16px; left: 16px; width: auto; } }
