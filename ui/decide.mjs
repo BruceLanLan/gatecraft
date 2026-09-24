@@ -559,6 +559,9 @@ function renderFill(root, t, redraw) {
   const go = el("button", "primary", decideState.busy === "fill" ? t("decFilling") : t("decFill"));
   go.disabled = Boolean(decideState.busy) || (decideState.keyPresent === false && freeLeft <= 0);
   if (decideState.keyPresent === false && freeLeft > 0 && decideState.busy !== "fill") go.textContent = t("decFillTrial", freeLeft);
+  // While the page is still finding out whether there is a key or free fills, say so, rather
+  // than showing a grey button that reads as "you cannot".
+  if (decideState.probing && decideState.keyPresent !== true && !freeLeft && !decideState.busy) { go.textContent = t("decChecking"); go.disabled = true; }
   go.addEventListener("click", () => fillWith(null));
   bar.append(go);
   const own = el("button", decideState.keyPresent === false ? "primary" : "ghost", decideState.busy === "own" && decideState.progress ? t("decOwnProgress", decideState.progress.done, decideState.progress.total) : t("decFillOwn", calls));
@@ -915,12 +918,25 @@ export function renderDecide(root, t) {
 }
 
 export async function probeKey() {
+  decideState.probing = true;
   try {
     decideState.hosted = !(await hasServer());
     const health = await api("health.status");
     decideState.keyPresent = health.decisionKey === "present";
     // No key of their own: ask how many of the free fills this address has left, so the page
-    // can offer one instead of a dead button.
-    decideState.trial = decideState.keyPresent ? null : await api("decision.trial").catch(() => null);
+    // can offer one instead of a dead button. Asked up to three times: on a flaky network (a
+    // proxy resetting connections is common) one failed request made the page declare the free
+    // fills unreachable. And a failed answer never overwrites a known one - the count a fill
+    // just reported is better than no count at all.
+    if (decideState.keyPresent) decideState.trial = null;
+    else {
+      let status = null;
+      for (let go = 0; go < 3 && !status?.available; go++) {
+        if (go) await new Promise((r) => setTimeout(r, 1200));
+        status = await api("decision.trial").catch(() => null);
+      }
+      if (status?.available || !decideState.trial?.available) decideState.trial = status;
+    }
   } catch { decideState.keyPresent = null; }
+  decideState.probing = false;
 }

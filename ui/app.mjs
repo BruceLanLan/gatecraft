@@ -2475,7 +2475,8 @@ async function init() {
   }, asWebsite);
   // Landing straight on the decision view means nothing has asked the server whether a key is
   // sitting in ~/.config yet, so the fill button would look ready and fail on click.
-  if (state.view === "decide") probeKey().then(renderAll, () => {});
+  // Redraw as soon as the probe starts (so the fill button can say "checking") and when it ends.
+  if (state.view === "decide") { const probing = probeKey().then(renderAll, () => {}); renderAll(); void probing; }
   window.addEventListener("pointerup", () => stopPainting?.());
   window.addEventListener("pointercancel", () => stopPainting?.());
   renderAll();
