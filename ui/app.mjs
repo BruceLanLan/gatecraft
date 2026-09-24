@@ -577,7 +577,9 @@ function byokPanel(d, rebuild) {
   const settings = h("div", { class: "byok" },
     h("div", { class: "fields" },
       field(t("provider"), h("select", {
-        onchange: (e) => { d.provider = e.target.value; d.baseUrl = ""; d.model = ""; save(); renderEditor(); },
+        // The address, model and key fields show the chosen provider's defaults, so they have to
+        // be drawn again - otherwise "a model on this computer" still showed Anthropic's.
+        onchange: (e) => { d.provider = e.target.value; d.baseUrl = ""; d.model = ""; save(); renderEditor(); renderSettings(); renderHeader(); if (state.view === "decide") renderDecide($("#decide"), t); },
       }, Object.keys(PROVIDERS).map((k) => h("option", { value: k, selected: d.provider === k }, PROVIDERS[k].label[state.lang] ?? PROVIDERS[k].label.en)))),
       field(t("modelName"), h("input", { value: d.model, placeholder: p.model || t("modelRequired"), spellcheck: "false", autocomplete: "off", oninput: (e) => { d.model = e.target.value; save(); } })),
       field(t("apiAddress"), h("input", { value: d.baseUrl, placeholder: p.baseUrl, spellcheck: "false", autocomplete: "off", oninput: (e) => { d.baseUrl = e.target.value; save(); } }))),
@@ -1449,7 +1451,9 @@ function renderHeader() {
   // The model is the person's own, and the decision view borrows it to draft a codebook.
   button.hidden = !(inFlow || inDecide);
   button.setAttribute("aria-expanded", String(flow.showSettings));
-  const local = /^http:\/\/(127\.0\.0\.1|localhost)/.test(d.baseUrl.trim());
+  // An empty address means the provider's own default - which, for "a model on this computer",
+  // is local. Judging by the typed address alone called a local model "no key yet".
+  const local = /^http:\/\/(127\.0\.0\.1|localhost)/.test(d.baseUrl.trim() || PROVIDERS[d.provider]?.baseUrl || "");
   const ready = local || Boolean(secret.key.trim());
   const label = PROVIDERS[d.provider]?.label[state.lang] ?? PROVIDERS[d.provider]?.label.en ?? d.provider;
   fill(button, h("span", { class: `key-dot${ready ? " ready" : ""}` }), `${label} · ${ready ? (local ? t("modelLocal") : t("modelKeySet")) : t("modelNoKey")}`);
@@ -1578,7 +1582,7 @@ async function askFromSentence() {
   }
   const ready = EXAMPLES.flow.find((ex) => Object.values(ex.sentence).includes(sentence));
   if (ready) return pickSuggestion(ready);
-  const local = /^http:\/\/(127\.0\.0\.1|localhost)/.test(d.baseUrl.trim());
+  const local = /^http:\/\/(127\.0\.0\.1|localhost)/.test(d.baseUrl.trim() || PROVIDERS[d.provider]?.baseUrl || "");
   if (!secret.key.trim() && !local) {
     flow.note = { kind: "question", text: t("needKey") };
     flow.showSettings = true;
