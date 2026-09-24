@@ -295,7 +295,9 @@ export const METHODS = {
   // Answer every legal situation. `rule` asks nobody; otherwise the decision model does.
   // With no key on this machine, one of the free fills is used instead - the same model, paid
   // by the project, a few per address. A key of your own always wins, and a rule needs neither.
-  "decision.fill": async ({ spec, rule = null, concurrency = 8 }, { decisionKey = null, fetch: f, trial = trialUrl() } = {}) => {
+  // `jevProxy`: where a visitor's own key goes on the website, where the browser cannot reach the
+  // decision model directly - the free-fill service forwards it, uncounted, as the visitor's.
+  "decision.fill": async ({ spec, rule = null, concurrency = 8 }, { decisionKey = null, jevProxy = null, fetch: f, trial = trialUrl() } = {}) => {
     const d = parseDecision(spec);
     let legal = 0;
     for (let row = 0; row < 2 ** d.nIn; row++) if (isLegal(d, decodeRow(d, row))) legal += 1;
@@ -304,7 +306,7 @@ export const METHODS = {
     let free = null;
     let filler;
     if (rule) filler = ruleFiller(d, rule);
-    else if (decisionKey) filler = jevFiller(d, { apiKey: decisionKey, ...net });
+    else if (decisionKey) filler = jevFiller(d, { apiKey: decisionKey, ...(jevProxy ? { url: `${jevProxy}/v1/systemone`, headers: { "x-jev-key": decisionKey } } : {}), ...net });
     else if (trial) {
       try { free = await startTrial(legal, { url: trial, ...net }); }
       catch (error) { throw new ApiError("bad_request", error.message); }

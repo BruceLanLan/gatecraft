@@ -202,7 +202,7 @@ export function ruleFiller(d, expression) {
 
 // A filler that asks the typed decision model through Cloudflare Workers AI. `fetch` is
 // injectable so tests never touch the network; the real one spends the caller's own money.
-export function jevFiller(d, { apiKey = null, account = null, token = null, url: override = null, fetch = globalThis.fetch, timeoutMs = 60_000, retries = 3 }) {
+export function jevFiller(d, { apiKey = null, account = null, token = null, url: override = null, headers: extra = {}, fetch = globalThis.fetch, timeoutMs = 60_000, retries = 3 }) {
   // Two ways to the same model, because the account you need decides whether anyone can
   // start. Direct is one signup at typesafe.ai; the Cloudflare route needs a Cloudflare
   // account with Workers AI on top. Same model, same answers - checked on the same situation,
@@ -221,7 +221,7 @@ export function jevFiller(d, { apiKey = null, account = null, token = null, url:
         const questions = { q: { type: "choice", instructions: d.question, criteria } };
         const response = await fetch(url, {
           method: "POST",
-          headers: { authorization: `Bearer ${direct ? apiKey : token}`, "content-type": "application/json" },
+          headers: { authorization: `Bearer ${direct ? apiKey : token}`, "content-type": "application/json", ...extra },
           body: JSON.stringify(direct ? { model: "jev-latest", state, questions } : { model: "typesafe/jev", input: { state, questions } }),
           signal: AbortSignal.timeout(timeoutMs),
         });

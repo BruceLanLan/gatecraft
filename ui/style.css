@@ -621,3 +621,14 @@ table.blocks th, table.blocks td { text-align: left; padding: 4px 8px; border-bo
 .tour-focus, #decide .tour-focus { outline: 3px solid var(--accent); outline-offset: 6px; border-radius: 12px; transition: outline-offset .2s ease; }
 @media (prefers-reduced-motion: reduce) { .tour-focus { transition: none; } }
 @media (max-width: 560px) { .tour { right: 16px; left: 16px; width: auto; } }
+
+/* Where a decision-model key comes from: a fold-out with the steps, and on the website a field. */
+#decide .jevkey { margin: 10px 0 4px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; background: var(--panel); }
+#decide .jevkey summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+#decide .jevkey[open] summary { margin-bottom: 8px; }
+#decide .jev-steps { margin: 0 0 10px; padding-left: 20px; display: grid; gap: 6px; font-size: 14px; line-height: 1.6; }
+#decide .jev-steps a { color: var(--accent); }
+#decide .jev-row { display: flex; gap: 8px; flex-wrap: wrap; }
+#decide .jev-input { flex: 1 1 260px; min-width: 0; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+#decide .jev-remember { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); margin: 6px 0; }
+#decide .jev-cmd { white-space: pre-wrap; word-break: break-all; font-size: 12px; padding: 8px 10px; border-radius: 8px; background: var(--soft); margin: 4px 0; }

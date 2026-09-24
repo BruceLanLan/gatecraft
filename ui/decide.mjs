@@ -16,6 +16,7 @@ import { renderLanding } from "./landing.mjs";
 import { createTour } from "./tour.mjs";
 import { codebookPrompt, settleWidths } from "../src/draft.mjs";
 import { modelRequest, replyText, specFromReply } from "../src/describe.mjs";
+import { trialUrl } from "../src/trial.mjs";
 
 // Two homes for the same page. Run locally (npm run ui), it talks to this machine's server,
 // which holds the decision-model key if you have one. Served as a plain website (gatecraft.fun),
@@ -41,7 +42,10 @@ const api = async (method, params = {}) => {
     return body.result;
   }
   const { handleApi } = await pageApi();
-  const { body } = await handleApi({ method, params }, { decisionKey: null });
+  // On the website a visitor's own decision-model key lives only in this page; the browser cannot
+  // call the model directly, so it goes through the free-fill service, which forwards it uncounted.
+  const own = decideState.jevKey || null;
+  const { body } = await handleApi({ method, params }, { decisionKey: own, jevProxy: own ? trialUrl() : null });
   if (!body.ok) throw new Error(body.error?.message ?? `${method} failed`);
   return body.result;
 };
@@ -87,6 +91,17 @@ export function forgetDecision() {
 }
 
 restore();
+
+// A visitor's own decision-model key, on the website. Held in memory; written to this browser's
+// storage only when they tick "remember", and removable with one click. Never part of the saved
+// work, so "Start over" does not carry it into a screenshot or a shared machine by surprise.
+const JEV_SLOT = "gatecraft.jev.v1";
+try { decideState.jevKey = localStorage.getItem(JEV_SLOT) || ""; decideState.jevRemember = Boolean(decideState.jevKey); } catch { decideState.jevKey = ""; }
+function setJevKey(key, remember) {
+  decideState.jevKey = key.trim();
+  decideState.jevRemember = remember;
+  try { if (remember && decideState.jevKey) localStorage.setItem(JEV_SLOT, decideState.jevKey); else localStorage.removeItem(JEV_SLOT); } catch { /* storage refused: it lasts this visit */ }
+}
 
 // The person's own model, as the rest of the page already has it set up: provider, address,
 // model name and key all live in app.mjs, and the key never leaves this browser except to that
@@ -304,12 +319,66 @@ function renderSpec(root, t, redraw) {
 }
 
 // Step 2: answer every situation, then freeze and prove it.
+// Where a decision-model key comes from, said step by step, because "get a key" is where most
+// people stop. On the website the key is pasted here; run locally it goes in a file the server
+// reads. Either way the same four steps.
+function renderJevKey(t, redraw) {
+  const site = decideState.hosted;
+  const box = el("details", "jevkey");
+  box.open = Boolean(decideState.jevOpen) || (decideState.keyPresent === false && !(decideState.trial?.available && decideState.trial.left > 0));
+  box.addEventListener("toggle", () => { decideState.jevOpen = box.open; });
+  const summary = el("summary", null, decideState.jevKey && site ? t("jevUsing", decideState.jevKey.slice(-4)) : t("jevSummary"));
+  box.append(summary);
+  const steps = el("ol", "jev-steps");
+  const link = (href, text) => { const a = el("a", null, text); a.href = href; a.target = "_blank"; a.rel = "noopener"; return a; };
+  const s1 = el("li"); s1.append(t("jevStep1a"), " ", link("https://console.typesafe.ai/", "console.typesafe.ai"), " ", t("jevStep1b"));
+  const s2 = el("li"); s2.append(t("jevStep2a"), " ", link("https://console.typesafe.ai/keys", "console.typesafe.ai/keys"), " ", t("jevStep2b"));
+  const s3 = el("li", null, site ? t("jevStep3Site") : t("jevStep3Local"));
+  steps.append(s1, s2, s3, el("li", null, t("jevStep4")));
+  box.append(steps);
+  if (!site) {
+    box.append(el("pre", "mono jev-cmd", "mkdir -p ~/.config/gatecraft && printf '%s' 'YOUR_KEY' > ~/.config/gatecraft/jev.token && chmod 600 ~/.config/gatecraft/jev.token"));
+    box.append(el("p", "hint", t("jevLocalReload")));
+    return box;
+  }
+  const row = el("div", "row jev-row");
+  const input = el("input", "jev-input mono");
+  input.type = "password";
+  input.id = "jev-key";
+  input.placeholder = t("jevPlaceholder");
+  input.autocomplete = "off";
+  input.value = decideState.jevKey ?? "";
+  const remember = el("label", "jev-remember");
+  const tick = el("input");
+  tick.type = "checkbox";
+  tick.id = "jev-remember";
+  tick.checked = Boolean(decideState.jevRemember);
+  remember.append(tick, " ", t("jevRemember"));
+  const use = el("button", null, t("jevUse"));
+  use.addEventListener("click", async () => {
+    setJevKey(input.value, tick.checked);
+    decideState.jevOpen = false;
+    await probeKey();
+    redraw();
+  });
+  row.append(input, use);
+  box.append(row, remember);
+  if (decideState.jevKey) {
+    const forget = el("button", "ghost", t("jevForget"));
+    forget.addEventListener("click", async () => { setJevKey("", false); await probeKey(); redraw(); });
+    box.append(forget);
+  }
+  box.append(el("p", "hint", t("jevPrivacy")));
+  return box;
+}
+
 function renderFill(root, t, redraw) {
   const section = card(t("decFillTitle"), 2);
-  section.append(el("p", "hint", t("decFillHint")));
+  const site = decideState.hosted;
+  section.append(el("p", "hint", t(site ? "decFillHintSite" : "decFillHint")));
   // Without a key: a free fill if any are left, and always the ways to not need one.
   const freeLeft = decideState.keyPresent === false && decideState.trial?.available ? decideState.trial.left : 0;
-  if (decideState.keyPresent === false) section.append(el("p", freeLeft > 0 ? "hint" : "warn", freeLeft > 0 ? t("decTrialOffer", freeLeft, decideState.trial.limit) : decideState.trial?.available ? t("decTrialGone", decideState.trial.limit) : t("decNoKey")));
+  if (decideState.keyPresent === false) section.append(el("p", freeLeft > 0 ? "hint" : "warn", freeLeft > 0 ? t(site ? "decTrialOfferSite" : "decTrialOffer", freeLeft, decideState.trial.limit) : decideState.trial?.available ? t(site ? "decTrialGoneSite" : "decTrialGone", decideState.trial.limit) : t(site ? "decNoKeySite" : "decNoKey")));
 
   // Two sources, because a page that can do nothing without a key is a page most visitors
   // bounce off. Asking the model is the real thing; filling from a rule the file already
@@ -391,6 +460,8 @@ function renderFill(root, t, redraw) {
   }
   section.append(bar);
   section.append(el("p", "hint", !m?.ready ? t("decOwnNoModel") : legal > OWN_MAX ? t("decOwnTooMany", legal, OWN_MAX) : t("decOwnHint", m.label, calls)));
+  // The fill buttons come first; where a key comes from sits under them.
+  section.append(renderJevKey(t, redraw));
 
   if (decideState.fillStats) {
     const s = decideState.fillStats;
@@ -679,6 +750,7 @@ export function renderDecide(root, t) {
 
 export async function probeKey() {
   try {
+    decideState.hosted = !(await hasServer());
     const health = await api("health.status");
     decideState.keyPresent = health.decisionKey === "present";
     // No key of their own: ask how many of the free fills this address has left, so the page

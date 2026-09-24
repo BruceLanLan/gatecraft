@@ -92,7 +92,7 @@ flowchart LR
 | **你自己的模型** | 你在页面上配好的模型，或者通过 MCP 接入的 agent | 所有人，记在自己的账上 |
 | **Jev** | 免费注册一个 [typesafe.ai](https://typesafe.ai) 的 key，一个决策约 1 美分 | 想要校准得最好的把握度 |
 
-用你自己的模型时，每种情况会**问三遍**，把握度是三次答案一致的比例——实测对话模型自报的把握度没有信息量，而三次全一致的行，重跑时 96%–98% 答案不变。开始之前会先告诉你要调用多少次。gatecraft 自己从不调用模型，也不内置任何 key；免费填表是唯一的例外，由 `trial.gatecraft.fun` 上的一个小服务转发，它只存每个地址的次数，而且地址先做了哈希（设置 `GATECRAFT_TRIAL=off` 可以关掉）。要用你自己的 Jev key：`printf '%s' 'KEY' > ~/.config/gatecraft/jev.token`。
+用你自己的模型时，每种情况会**问三遍**，把握度是三次答案一致的比例——实测对话模型自报的把握度没有信息量，而三次全一致的行，重跑时 96%–98% 答案不变。开始之前会先告诉你要调用多少次。gatecraft 自己从不调用模型，也不内置任何 key；免费填表是唯一的例外，由 `trial.gatecraft.fun` 上的一个小服务转发，它只存每个地址的次数，而且地址先做了哈希（设置 `GATECRAFT_TRIAL=off` 可以关掉）。要用你自己的 Jev key：在 [console.typesafe.ai](https://console.typesafe.ai/) 注册登录，到 [console.typesafe.ai/keys](https://console.typesafe.ai/keys) 创建一个 key；在网站上直接粘贴到第 2 步里（key 只留在你的浏览器里，调用只经过转发、不保存），本机运行则用 `printf '%s' 'KEY' > ~/.config/gatecraft/jev.token`。页面上有分步引导。
 
 ## 接你自己的 agent（MCP）
 

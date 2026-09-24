@@ -41,7 +41,7 @@ const settings = (env) => ({
 // The website (gatecraft.fun) runs entirely in the browser and calls this directly, so every
 // answer carries CORS headers. That is safe here: nothing rides on cookies, a token only works
 // from the address that started it, and the counts are per address whichever page asks.
-const CORS = { "access-control-allow-origin": "*", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-allow-headers": "authorization, content-type", "access-control-max-age": "86400" };
+const CORS = { "access-control-allow-origin": "*", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-allow-headers": "authorization, content-type, x-jev-key", "access-control-max-age": "86400" };
 const json = (status, body) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...CORS } });
 
 // What a person is told when the free fills are gone, or were never there. Always the same
@@ -106,6 +106,19 @@ export async function handle(request, env, { now = Date.now(), fetchJev = fetch 
     await env.TRIAL.put(`day:${day}`, String(today + 1), { expirationTtl: 3 * 86400 });
     const token = await sign(env, { who, calls: n * 4, exp: now + s.minutes * 60_000, id: crypto.randomUUID() });
     return json(200, { token, left: s.perIp - used - 1, limit: s.perIp, url: `${url.origin}${base}/v1/systemone`, expiresAt: new Date(now + s.minutes * 60_000).toISOString() });
+  }
+
+  // A visitor's own key, from the website. A browser cannot call the decision model directly (it
+  // sends no CORS headers), so the page sends the request here with the key in x-jev-key and this
+  // forwards it unchanged, with that key. Nothing is counted, logged or kept - it is the visitor's
+  // own account - and only the decision model's own request shape is forwarded.
+  if (request.method === "POST" && path === "/v1/systemone" && request.headers.get("x-jev-key")) {
+    const own = request.headers.get("x-jev-key").trim();
+    let body;
+    try { body = await request.json(); } catch { return json(400, { error: "bad_request", message: "the body must be the decision model's request" }); }
+    if (!own || body?.model !== "jev-latest" || typeof body.state !== "object" || typeof body.questions !== "object") return json(400, { error: "bad_request", message: "expected { model: \"jev-latest\", state, questions } and a key" });
+    const answer = await fetchJev(JEV, { method: "POST", headers: { authorization: `Bearer ${own}`, "content-type": "application/json" }, body: JSON.stringify({ model: body.model, state: body.state, questions: body.questions }) });
+    return new Response(answer.body, { status: answer.status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...CORS } });
   }
 
   if (request.method === "POST" && path === "/v1/systemone") {

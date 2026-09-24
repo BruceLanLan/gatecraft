@@ -145,6 +145,24 @@ test("the website can call it from the browser, and a person opening it is sent 
   assert.equal(root.headers.get("location"), "https://gatecraft.fun/");
 });
 
+test("a visitor's own key is forwarded as theirs: not counted, not the project's key, and only for the model's request", async () => {
+  const w = world();
+  const ask = (headers, body = { model: "jev-latest", state: { a: "b" }, questions: { q: {} } }) =>
+    w.from("203.0.113.7")("https://trial.test/v1/systemone", { method: "POST", headers: { "content-type": "application/json", ...headers }, body: JSON.stringify(body) });
+  for (let i = 0; i < 5; i++) assert.equal((await ask({ "x-jev-key": "visitor-key" })).status, 200);
+  assert.deepEqual([...w.seen.keys], ["Bearer visitor-key"], "the visitor's key, never the project's");
+  assert.equal([...w.store.keys()].length, 0, "nothing is counted or stored");
+  assert.equal((await ask({ "x-jev-key": "visitor-key" }, { model: "other", state: {}, questions: {} })).status, 400);
+  const pre = await handle(new Request("https://trial.test/v1/systemone", { method: "OPTIONS" }), w.env);
+  assert.match(pre.headers.get("access-control-allow-headers"), /x-jev-key/);
+  // And a visitor's own key in the page goes through that path end to end.
+  const r = await handleApi({ method: "decision.fill", params: { spec } }, { decisionKey: "visitor-key", jevProxy: "https://trial.test", fetch: w.from("203.0.113.7") });
+  assert.equal(r.body.ok, true, JSON.stringify(r.body.error));
+  assert.equal(r.body.result.answered, 192);
+  assert.equal(r.body.result.trial, undefined, "an own key never uses a free fill");
+  assert.deepEqual([...w.seen.keys], ["Bearer visitor-key"]);
+});
+
 test("with no trial configured, a machine without a key is told how to get one", async () => {
   const r = await handleApi({ method: "decision.fill", params: { spec } }, { decisionKey: null, trial: null });
   assert.equal(r.body.ok, false);

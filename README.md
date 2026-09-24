@@ -92,7 +92,7 @@ flowchart LR
 | **Your own model** | the model you set up in the page, or your agent over MCP | everyone, on their own account |
 | **Jev** | a free [typesafe.ai](https://typesafe.ai) key, about 1 cent a decision | the best-calibrated confidence |
 
-With your own model each situation is asked **three times** and the confidence is how often the answers agreed — a chat model's own confidence was measured to carry nothing, while unanimous rows reproduced 96–98% of the time. The call count is shown before you start. gatecraft never calls a model on its own and never bundles a key; the free fills are the one exception, forwarded by a small service at `trial.gatecraft.fun` that keeps only a hashed count per address (`GATECRAFT_TRIAL=off` turns it off). To use your own Jev key: `printf '%s' 'KEY' > ~/.config/gatecraft/jev.token`.
+With your own model each situation is asked **three times** and the confidence is how often the answers agreed — a chat model's own confidence was measured to carry nothing, while unanimous rows reproduced 96–98% of the time. The call count is shown before you start. gatecraft never calls a model on its own and never bundles a key; the free fills are the one exception, forwarded by a small service at `trial.gatecraft.fun` that keeps only a hashed count per address (`GATECRAFT_TRIAL=off` turns it off). To use your own Jev key: sign in at [console.typesafe.ai](https://console.typesafe.ai/), create a key at [console.typesafe.ai/keys](https://console.typesafe.ai/keys), then paste it into step 2 on the website (it stays in your browser; calls are forwarded, never stored) or, locally, `printf '%s' 'KEY' > ~/.config/gatecraft/jev.token`. The page walks you through it.
 
 ## Use it from your agent (MCP)
 
