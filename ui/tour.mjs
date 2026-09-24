@@ -41,11 +41,25 @@ export function createTour({ t, actions, rerender }) {
     const target = document.querySelector(STEPS[at].target);
     if (!target) return;
     target.classList.add("tour-focus");
-    if (scroll) target.scrollIntoView({ block: "center", behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    // Two frames later, so a step that just re-rendered the page has laid out before we measure.
+    if (scroll) requestAnimationFrame(() => requestAnimationFrame(() => place(target)));
+  };
+
+  // Put the target in the part of the screen the panel does not cover: centred there when it
+  // fits, its top near the top of the screen when it does not. On a phone the panel spans the
+  // width and takes the bottom third, so centring on the whole screen hid the target behind it.
+  const place = (target) => {
+    if (!target.isConnected) return;
+    const r = target.getBoundingClientRect();
+    const p = panel?.getBoundingClientRect();
+    const covers = p && p.left < r.right && p.right > r.left;
+    const room = (covers ? p.top : innerHeight) - 16;
+    const top = r.height <= room - 32 ? r.top - (room - r.height) / 2 : r.top - 24;
+    window.scrollTo({ top: scrollY + top, behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   };
 
   const draw = () => {
-    if (at < 0) { panel?.remove(); panel = null; focus(); return; }
+    if (at < 0) { panel?.remove(); panel = null; document.body.style.paddingBottom = ""; focus(); return; }
     if (!panel) {
       panel = el("aside", "tour");
       panel.setAttribute("role", "dialog");
@@ -70,6 +84,8 @@ export function createTour({ t, actions, rerender }) {
     next.addEventListener("click", () => (at === STEPS.length - 1 ? stop() : go(at + 1)));
     nav.append(back, next);
     panel.replaceChildren(head, el("h3", "tour-title", t(`tour${step.key}T`)), el("p", "tour-body", t(`tour${step.key}`)), dots, nav);
+    // Room below the page's last part, so it can scroll up out from under the panel.
+    document.body.style.paddingBottom = `${Math.ceil(panel.getBoundingClientRect().height) + 32}px`;
     focus();
   };
 

@@ -620,7 +620,7 @@ table.blocks th, table.blocks td { text-align: left; padding: 4px 8px; border-bo
 /* #decide in front so it outranks the views' own outlines (Try it draws one of its own). */
 .tour-focus, #decide .tour-focus { outline: 3px solid var(--accent); outline-offset: 6px; border-radius: 12px; transition: outline-offset .2s ease; }
 @media (prefers-reduced-motion: reduce) { .tour-focus { transition: none; } }
-@media (max-width: 560px) { .tour { right: 16px; left: 16px; width: auto; } }
+@media (max-width: 560px) { .tour { right: 12px; left: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); width: auto; gap: 8px; padding: 12px 14px; } .tour-body { font-size: 13.5px; line-height: 1.55; } }
 
 /* Where a decision-model key comes from: a fold-out with the steps, and on the website a field. */
 #decide .jevkey { margin: 10px 0 4px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; background: var(--panel); }
@@ -643,3 +643,9 @@ table.blocks th, table.blocks td { text-align: left; padding: 4px 8px; border-bo
 #decide .useit-title { margin: 0; font-size: 15px; }
 #decide .useit-code, #decide .useit-agent { margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 12px; line-height: 1.6; padding: 10px 12px; border-radius: 8px; background: var(--soft); }
 #decide .useit-agent { font-family: var(--sans); font-size: 13px; }
+/* On a phone the pickers run for a screen or more, so the answer would sit below the fold and a
+   tap would change nothing you can see. Put it above them and keep it in view while scrolling. */
+@media (max-width: 560px) {
+  #decide .tryit-title, #decide .tryit > .hint:first-of-type { order: -2; }
+  #decide .try-answer { order: -1; position: sticky; top: 0; z-index: 2; margin: 0 -1rem; padding: .6rem 1rem; background: var(--panel); border-top: 0; border-bottom: 1px solid currentColor; }
+}
