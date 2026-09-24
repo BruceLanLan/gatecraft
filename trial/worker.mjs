@@ -70,9 +70,12 @@ export async function handle(request, env, { now = Date.now(), fetchJev = fetch 
   // and tokens signed with it could be forged by anyone who read this file. Refuse instead.
   if (!env.SALT || !env.TOKEN_SECRET || !env.JEV_KEY || !env.TRIAL) return json(503, { error: "not_configured", message: `The free trial is not available right now. ${WAYS_OUT}` });
   const url = new URL(request.url);
-  // Mounted under a path on someone else's site (BASE_PATH, e.g. "/gatecraft"): everything below
-  // is matched with that prefix taken off, and every URL handed back puts it back on.
-  const base = String(env.BASE_PATH ?? "").replace(/\/+$/, "");
+  // Two ways to be mounted. On a host of its own (ROOT_HOSTS, e.g. trial.gatecraft.fun) it
+  // answers at the root. Anywhere else it sits under BASE_PATH (e.g. "/gatecraft" on a site it
+  // shares): everything is matched with that prefix taken off, and every URL handed back puts
+  // it back on.
+  const own = String(env.ROOT_HOSTS ?? "").split(",").map((h) => h.trim()).filter(Boolean).includes(url.hostname);
+  const base = own ? "" : String(env.BASE_PATH ?? "").replace(/\/+$/, "");
   if (base && url.pathname !== base && !url.pathname.startsWith(`${base}/`)) return json(404, { error: "not_found" });
   const path = url.pathname.slice(base.length) || "/";
   const s = settings(env);

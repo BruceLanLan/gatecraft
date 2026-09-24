@@ -121,6 +121,18 @@ test("mounted under a path on another site, it answers only there and hands back
   assert.equal((await w.from("198.51.100.4")("https://trial.test/elsewhere")).status, 404, "the rest of the site is not this Worker's");
 });
 
+test("on a host of its own it answers at the root, while the shared site keeps its path", async () => {
+  const w = world();
+  Object.assign(w.env, { BASE_PATH: "/gatecraft", ROOT_HOSTS: "trial.own.test" });
+  const own = await handleApi({ method: "decision.fill", params: { spec } }, { decisionKey: null, trial: "https://trial.own.test", fetch: w.from("203.0.113.7") });
+  assert.equal(own.body.ok, true, JSON.stringify(own.body.error));
+  const started = await (await w.from("198.51.100.4")("https://trial.own.test/start", { method: "POST", body: JSON.stringify({ situations: 1 }) })).json();
+  assert.equal(started.url, "https://trial.own.test/v1/systemone");
+  const shared = await (await w.from("198.51.100.5")("https://shared.test/gatecraft/start", { method: "POST", body: JSON.stringify({ situations: 1 }) })).json();
+  assert.equal(shared.url, "https://shared.test/gatecraft/v1/systemone");
+  assert.equal((await w.from("198.51.100.5")("https://shared.test/start", { method: "POST", body: "{}" })).status, 404, "the shared site's own paths stay its own");
+});
+
 test("with no trial configured, a machine without a key is told how to get one", async () => {
   const r = await handleApi({ method: "decision.fill", params: { spec } }, { decisionKey: null, trial: null });
   assert.equal(r.body.ok, false);
