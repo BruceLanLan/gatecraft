@@ -6,9 +6,10 @@
 // GATECRAFT_TRIAL_URL somewhere else. Nothing about the person is sent - the Worker counts by
 // the address the request comes from, hashed, and that is all it keeps.
 
-// The project's own free-trial service (trial/worker.mjs), mounted on the project's site. Its key
-// never leaves the Worker.
-export const DEFAULT_TRIAL_URL = "https://tapeout.work/gatecraft";
+// The project's own free-trial service (trial/worker.mjs), on the project's own domain. Its key
+// never leaves the Worker. Copies released before this used tapeout.work/gatecraft, which the
+// same Worker still answers.
+export const DEFAULT_TRIAL_URL = "https://trial.gatecraft.fun";
 
 export function trialUrl(env = process.env) {
   if (/^(off|0|false|no)$/i.test(env.GATECRAFT_TRIAL ?? "")) return null;

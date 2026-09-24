@@ -63,7 +63,7 @@ Every legal situation has to be answered once. Pick whichever you have:
 
 With your own model, each situation is asked **three times** and the confidence is how often the answers agreed — a chat model's own confidence was measured to carry nothing, while unanimous rows reproduced 96–98% of the time on a repeat. The call count is shown before you start, and the calls go from your browser straight to your provider, on your account.
 
-The free fills are the one exception to "whoever uses a model pays for it": when this machine has no key, a fill goes through a small service at `tapeout.work/gatecraft` that forwards to the same model with the project's key, which never leaves that service. It stores only a count per address, and the address is hashed first. After three, the page points you at the other three ways. Switch it off with `GATECRAFT_TRIAL=off`.
+The free fills are the one exception to "whoever uses a model pays for it": when this machine has no key, a fill goes through a small service at `trial.gatecraft.fun` that forwards to the same model with the project's key, which never leaves that service. It stores only a count per address, and the address is hashed first. After three, the page points you at the other three ways. Switch it off with `GATECRAFT_TRIAL=off`.
 
 Otherwise gatecraft never calls a model on its own and never pays for one; no key is bundled. To use Jev with your own key, write it where only this machine can read it:
 
