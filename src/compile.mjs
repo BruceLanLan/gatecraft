@@ -14,7 +14,7 @@ import { sha256 } from "./sha256.mjs";
 import { synthesize } from "./synth.mjs";
 import { checkExhaustive, MAX_BITS } from "./verify.mjs";
 
-export const COMPILER = "gatecraft 0.6.0";
+export const COMPILER = "gatecraft 0.7.0";
 export const DEFAULT_STEPS = 200_000;
 // What annealing minimises: "gates" (the NAND count, the default) or "cost",
 // the PoD cost, which weighs depth cubed. A certificate without
