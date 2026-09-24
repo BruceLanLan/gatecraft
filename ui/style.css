@@ -617,6 +617,7 @@ table.blocks th, table.blocks td { text-align: left; padding: 4px 8px; border-bo
 .tour-dots span.done { background: var(--muted); }
 .tour-dots span.on { background: var(--accent); }
 .tour-nav { display: flex; justify-content: flex-end; gap: 8px; }
-.tour-focus { outline: 3px solid var(--accent); outline-offset: 6px; border-radius: 12px; transition: outline-offset .2s ease; }
+/* #decide in front so it outranks the views' own outlines (Try it draws one of its own). */
+.tour-focus, #decide .tour-focus { outline: 3px solid var(--accent); outline-offset: 6px; border-radius: 12px; transition: outline-offset .2s ease; }
 @media (prefers-reduced-motion: reduce) { .tour-focus { transition: none; } }
 @media (max-width: 560px) { .tour { right: 16px; left: 16px; width: auto; } }

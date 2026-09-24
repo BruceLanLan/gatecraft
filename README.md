@@ -1,107 +1,120 @@
+<div align="center">
+
 # gatecraft
+
+**Freeze one decision. Prove it on every input.**
+
+[![Try it in your browser](https://img.shields.io/badge/try%20it-gatecraft.fun-C8622B)](https://gatecraft.fun)
+[![License: MIT](https://img.shields.io/badge/license-MIT-2E6B4C)](LICENSE)
+![Node 20+](https://img.shields.io/badge/node-%E2%89%A5%2020-5E594F)
+![Zero dependencies](https://img.shields.io/badge/dependencies-0-5E594F)
+[![MCP](https://img.shields.io/badge/MCP-7%20tools-5E594F)](#use-it-from-your-agent-mcp)
 
 English · [中文](README.zh-CN.md)
 
-**Your program makes a small decision over and over, and calls a model for it every time.** It answers differently about a quarter of the time, every call costs money, and you cannot show anyone why it decided what it did.
+<img src="docs/images/hero.png" alt="gatecraft: a moderation decision running as 32 proven NAND gates" width="100%">
 
-gatecraft freezes that one decision. It answers every situation your program can be in, once; proves the answers as a NAND circuit on every row, twice; asks **you** twenty questions to check the answers are what you actually want; and hands you a 4 KB file with no dependencies to `import`:
+</div>
+
+Your program makes the same small call again and again — approve or hold, keep or remove, retry or give up — and asks a language model every time. It answers differently about a quarter of the time, every call costs money, and nobody can say why it decided what it did.
+
+**gatecraft asks once, for every situation your program can be in**, compiles the answers into a NAND circuit, proves the circuit on every input — twice, by two independent methods — has **you** check twenty of them blind, and hands you one file:
 
 ```js
-import { decide } from "./refund-call.decision.mjs";
+import { decide } from "./refund-call.decision.mjs";   // 4 KB, no dependencies, no network
+
 const { action, review } = decide({ age: 0, condition: 1, reason: 0, history: 0, price: 1 });
 if (review) handToAPerson(); else actOn(action);
 ```
 
-| | calling a model each time | frozen with gatecraft |
+| | asking a model each time | frozen with gatecraft |
 |---|---|---|
-| same input | a different answer **25%** of the time (measured) | always the same answer |
-| checked | not at all | every row, by two independent proofs |
-| cost per call | tokens | **zero** |
-| when it is unsure | answers anyway | **raises its hand** (`review = 1`) and hands it to a person |
+| Same input twice | a different answer **25%** of the time (measured) | always the same answer |
+| Checked | never | every input, by two independent proofs |
+| Cost per call | tokens, latency, an outage now and then | **nothing** — it is a table lookup |
+| When it is unsure | answers anyway | **hands the case to a person** (`review: true`) |
 
-**It may also tell you not to use it.** Of six real decisions checked this way, two were ones where the filling model disagreed with the blind answers exactly where it was most confident — and both passed the row-by-row proof, the independent proof, a repeat and a high confidence. Only the twenty blind questions caught it, which is why that step is a gate, not an option. One honest caveat: those blind answers were written by an AI assistant acting as an independent judge, not yet by a person — so this shows what the check can catch, not yet how often a model is wrong by a human's standard.
+## See it
 
-## What it looks like
+Pick a situation and the proven circuit decides — the wires that carry 1 light up. A code nobody gave a meaning to falls to the safe answer and goes to a person, by construction:
 
-`npm run ui` opens here. Start from a measured example, paste a decision file, or describe the decision in one sentence and let your own model draft it.
+<p align="center"><img src="docs/images/try.gif" alt="Changing the situation re-lights the circuit: keep, fold, remove, then an unknown code handed to a person" width="92%"></p>
 
-![The decision page](docs/images/decision-landing.png)
+## Try it
 
-After the table is filled and proven, poke it. What runs is the netlist that was just proven, drawn gate by gate and lit for the situation you picked:
+**In your browser** — [**gatecraft.fun**](https://gatecraft.fun). Nothing to install, no sign-up. Click **Take the 2-minute tour** and it walks you through a real decision, one step at a time.
 
-![Try the frozen decision](docs/images/decision-try.png)
+<p align="center"><img src="docs/images/tour.png" alt="The guided tour pointing at the proven circuit" width="92%"></p>
 
-Then twenty situations, **without the model's answers** — shown them, you would be agreeing with the machine instead of judging:
-
-![Twenty blind questions](docs/images/decision-ask.png)
-
-Your answers decide the verdict: **delegate**, **write the rule instead**, or **do not delegate**.
-
-![Threshold and verdict](docs/images/decision-verdict.png)
-
-## Try it in three minutes
-
-Node 20 or later. No install step — there are no dependencies.
+**On your machine** — Node 20 or later, nothing to install:
 
 ```
 git clone https://github.com/BruceLanLan/gatecraft && cd gatecraft
-npm run ui                        # open http://127.0.0.1:4747
+npm run ui                        # http://127.0.0.1:4747
 ```
 
-Click **Hold a comment**, then **Read it back to me**, then either **Fill and freeze** (one of your three free fills, with the calibrated model) or **fill it from the rule in this file** (free forever). Neither needs a key or an account, and everything after is real: the proof, the circuit you can poke, the twenty questions, the verdict and the download.
+**From your agent** — see [MCP](#use-it-from-your-agent-mcp) below.
 
-## Three ways to fill a decision
+## How it works
 
-Every legal situation has to be answered once. Pick whichever you have:
+```mermaid
+flowchart LR
+  A["<b>Describe</b><br/>a few codes in,<br/>2–4 choices out"] --> B["<b>Fill</b><br/>every situation answered:<br/>rule · your model · free fill"]
+  B --> C["<b>Prove</b><br/>NAND circuit = table<br/>on every input, twice"]
+  C --> D["<b>Check</b><br/>you answer 20<br/>without seeing the model"]
+  D --> E{"<b>Verdict</b>"}
+  E -->|delegate| F["<b>4 KB module</b><br/>import { decide }"]
+  E -->|write an if instead| G["a plain rule"]
+  E -->|do not delegate| H["keep it with people"]
+```
 
-| | what you need | good for |
+1. **Describe** the decision as a *codebook*: what it looks at, each as a few codes with a plain-language meaning, and the 2–4 things it can do. One of those is the **safe** choice — the least damaging if taken by mistake. A code with no meaning is illegal and always goes to a person. Don't want to write it? Describe the decision in one sentence and your own model drafts it.
+2. **Fill** — every legal situation gets an answer (usually a few hundred).
+3. **Prove** — the table is compiled to NAND gates and checked against the table on every input, then again by [Yosys](https://github.com/YosysHQ/yosys) with a miter and SAT.
+4. **Check** — the proof says the circuit matches the table; only you can say the table is what you want. You answer twenty situations **without seeing the model's answers**:
+
+   <img src="docs/images/ask.png" alt="One of the twenty blind questions" width="92%">
+
+5. **Verdict** — your answers sweep the confidence threshold and decide: **delegate** (at this threshold, it decides this share and hands the rest to a person), **write the rule instead** (an if-statement already does it), or **do not delegate**:
+
+   <img src="docs/images/verdict.png" alt="Threshold sweep and a delegate verdict" width="92%">
+
+   *Above: refund-call, filled by the decision model and calibrated against 20 blind answers written before any of the model's answers had been looked at — by an AI acting as an independent judge, not yet by a person.*
+
+6. **Ship** — download the module. It embeds the proven table and says in its header whether anyone checked it.
+
+## Filling without a key
+
+| | what you need | best for |
 |---|---|---|
-| **free fills** | nothing — **three per address**, paid by the project | trying the whole flow with the calibrated model before signing up for anything |
-| **a rule** | nothing — free and exact | a decision you can already write as an if-statement (the verdict will usually tell you to do just that) |
-| **your own model** | the model you set up in the page, or your agent over MCP | everyone without a decision-model account |
-| **Jev** (optional) | a free [typesafe.ai](https://typesafe.ai) account; about 1 cent per decision | the best-calibrated confidence |
+| **Free fills** | nothing — 3 per address, paid by the project | seeing the whole flow with the calibrated model |
+| **A rule** | nothing — free and exact | a decision you can already write as an if (the verdict will usually say: do that) |
+| **Your own model** | the model you set up in the page, or your agent over MCP | everyone, on their own account |
+| **Jev** | a free [typesafe.ai](https://typesafe.ai) key, about 1 cent a decision | the best-calibrated confidence |
 
-With your own model, each situation is asked **three times** and the confidence is how often the answers agreed — a chat model's own confidence was measured to carry nothing, while unanimous rows reproduced 96–98% of the time on a repeat. The call count is shown before you start, and the calls go from your browser straight to your provider, on your account.
+With your own model each situation is asked **three times** and the confidence is how often the answers agreed — a chat model's own confidence was measured to carry nothing, while unanimous rows reproduced 96–98% of the time. The call count is shown before you start. gatecraft never calls a model on its own and never bundles a key; the free fills are the one exception, forwarded by a small service at `trial.gatecraft.fun` that keeps only a hashed count per address (`GATECRAFT_TRIAL=off` turns it off). To use your own Jev key: `printf '%s' 'KEY' > ~/.config/gatecraft/jev.token`.
 
-The free fills are the one exception to "whoever uses a model pays for it": when this machine has no key, a fill goes through a small service at `trial.gatecraft.fun` that forwards to the same model with the project's key, which never leaves that service. It stores only a count per address, and the address is hashed first. After three, the page points you at the other three ways. Switch it off with `GATECRAFT_TRIAL=off`.
-
-Otherwise gatecraft never calls a model on its own and never pays for one; no key is bundled. To use Jev with your own key, write it where only this machine can read it:
-
-```
-mkdir -p ~/.config/gatecraft && printf '%s' 'YOUR_KEY' > ~/.config/gatecraft/jev.token && chmod 600 ~/.config/gatecraft/jev.token
-```
-
-## Bring your own agent (MCP)
-
-If you already use Claude Code, Codex or any agent that speaks MCP, you do not need the page. gatecraft runs as an MCP server with seven tools:
+## Use it from your agent (MCP)
 
 ```
 claude mcp add gatecraft -- node /path/to/gatecraft/scripts/mcp.mjs --out ./gatecraft-out
 ```
 
-For other clients, the same thing in their config:
-
-```json
-{ "mcpServers": { "gatecraft": { "command": "node", "args": ["/path/to/gatecraft/scripts/mcp.mjs", "--out", "./gatecraft-out"] } } }
-```
-
-Then ask your agent something like *"freeze the auto-refund decision in our code with gatecraft"*.
+Other clients: `{ "mcpServers": { "gatecraft": { "command": "node", "args": ["/path/to/gatecraft/scripts/mcp.mjs", "--out", "./gatecraft-out"] } } }`. Then ask: *"freeze the auto-refund decision in our code with gatecraft."*
 
 | tool | what it does |
 |---|---|
-| `gatecraft_decision_review` | checks a decision file and reads it back in plain sentences, with what to look at |
-| `gatecraft_decision_situations` | lists every legal situation, so the agent can answer them |
-| `gatecraft_decision_fill` | fills, freezes and proves (and proves again with Yosys when installed): `rule`, `answers` (the agent's own) or `jev` |
-| `gatecraft_decision_anchors` | draws twenty questions **for you** to answer, not the agent |
-| `gatecraft_decision_calibrate` | sweeps the threshold against your answers and gives the verdict |
+| `gatecraft_decision_review` | reads a decision back in plain words, with what to check |
+| `gatecraft_decision_situations` | lists every situation, so the agent can answer them |
+| `gatecraft_decision_fill` | fills, freezes and proves — `rule`, `answers` (the agent's) or `jev` |
+| `gatecraft_decision_anchors` | draws twenty questions **for you**, not the agent |
+| `gatecraft_decision_calibrate` | sweeps the threshold against your answers |
 | `gatecraft_decision_decide` | runs the proven circuit on one situation |
-| `gatecraft_decision_export` | writes the dependency-free module into your project |
+| `gatecraft_decision_export` | writes the module into your project |
 
-Two things are deliberate. **The twenty anchors must be answered by a person:** the tools say so, calibration records who answered, and anchors an agent answered are labelled a consistency check everywhere, including the exported module's header. **The model's answers never pass through the agent's context:** tools hand each other a directory, not the table, so the agent cannot let an answer slip while it asks you the questions. Nothing is written outside `--out`.
+The anchors are for a person: calibration records who answered, and an agent's answers are labelled a consistency check everywhere, including the module's header. The model's answers never pass through the agent's context — tools hand each other a directory, not the table. Nothing is written outside `--out`.
 
-## The command line
-
-The same flow, one step at a time:
+## Command line
 
 ```
 node scripts/decide.mjs draft     --from "one sentence about the decision" --out out/d
@@ -109,24 +122,30 @@ node scripts/decide.mjs fill      --spec out/d/d.decision.json --with rule|chat|
 node scripts/decide.mjs freeze    --spec … --out out/d && node scripts/decide.mjs check --out out/d
 node scripts/decide.mjs ask       --spec … --out out/d            # the twenty blind questions
 node scripts/decide.mjs calibrate --spec … --out out/d --anchors out/d/anchors.answered.json
-node scripts/decide.mjs export    --spec … --out out/d            # the 4 KB module
+node scripts/decide.mjs export    --spec … --out out/d
 ```
 
-## Read this before installing
+## Is it for you?
 
-- **Observations must already be a few discrete codes** — a gear, a tier, a status, a bucketed reading. Anything that needs reading text, recognising a person, calling the network or looking at a clock is on the other side of a wall this tool does not cross; bucketing raw values into codes is your program's job.
-- **A decision's size is set by how much a person can spot-check,** not by the circuit. The cap is 16 bits.
-- **Who needs this is unproven.** Of 55 real decisions measured, **15%** fell where it pays off — a short rule fails *and* the model settles most situations — and that is an upper bound.
-- The sentence-to-circuit workbench and the gallery are still here for circuits that are genuinely that small. Of 300 things people casually wished for, **3%** were.
-- The unsigned tape-out plan has **never been signed**; it has only been verified read-only on chain.
+**A good fit** when the same small decision runs many times; what it looks at is already a few categories (a tier, a status, a bucketed number); you can name the 2–4 things it can do; and being wrong one way is worse than the other.
 
-Every number on this page comes from a dated measurement in [docs/findings.md](docs/findings.md).
+**Not a fit** when it has to read text, recognise a person, check the time or call another service — bucketing raw values into codes is your program's job, and gatecraft does not cross that wall. Nor when it looks at so much (over 16 bits) that nobody could meaningfully spot-check twenty cases.
 
-## Documentation
+## What we measured
 
-- [How it works](docs/method.md) — the codebook, the three fills, the proofs, the anchors, calibration and export, and why each is built that way.
-- [What was measured](docs/findings.md) — the experiments behind the design, including the ones that went against it.
-- [Compiler reference](docs/compiler.md) — expression programs, the four editors, the local API, output files, wide tables, stateful circuits, the tape-out plan.
+Every number above comes from a dated experiment, written up with the ones that went against us — [docs/findings.md](docs/findings.md). The short version:
+
+- A model asked the same situation twice gave the same answer **75%** of the time.
+- Scoring by agreement across three asks beat the model's own confidence on both decisions tested.
+- Of 300 things people casually wished for, **3%** fit in a circuit — so gatecraft is for one decision inside a program, not "describe anything".
+- Of 55 real decisions, **15%** fall where this pays off. Who needs it is not yet proven.
+- In 2 of 6 decisions, the filling model disagreed with blind answers exactly where it was most confident, while every proof and check passed. **Caveat:** those blind answers were written by an AI acting as an independent judge; no person has answered them yet.
+
+## Docs
+
+- [How it works](docs/method.md) — each step, what it guarantees and what it does not.
+- [What was measured](docs/findings.md) — the experiments behind the design.
+- [Compiler reference](docs/compiler.md) — expression programs, the four editors, the local API, output files, stateful circuits, the unsigned tape-out plan. The sentence-to-circuit workbench and the gallery are still in the app.
 
 ## Development
 
@@ -134,11 +153,11 @@ Every number on this page comes from a dated measurement in [docs/findings.md](d
 npm test          # the whole suite, exhaustive over every input space
 ```
 
-`npm run setup` and `npm run check` are the maintainer's release guard: they enforce a neutral git identity and scan for a private word list that is not in this repository. You do not need them to use or contribute to gatecraft.
+`npm run setup` and `npm run check` are the maintainer's release guard (a neutral git identity and a scan against a private word list); you do not need them to use or contribute to gatecraft.
 
 ## Acknowledgements
 
-**ncd2net** ([@zhuoning293](https://x.com/zhuoning293)) compiles Attention, FFN and Transformer blocks described in pyncd through a fixed-point IR, Verilog and Yosys/ABC into pure NAND circuits — an attention core of 1,024 NAND, checked exhaustively over 2²⁴ inputs with zero errors. gatecraft's second, independent proof (writing the specification as BLIF and having Yosys prove the circuit equal with a miter and SAT, `src/boolean-ir.mjs`) comes from seeing that work: before it there was only one proof, our own. The two do different things — ncd2net lowers *models* into circuits, gatecraft lowers *judgements* — on the same foundation.
+**ncd2net** ([@zhuoning293](https://x.com/zhuoning293)) compiles Attention, FFN and Transformer blocks through a fixed-point IR, Verilog and Yosys/ABC into pure NAND circuits, checked exhaustively. gatecraft's second, independent proof — writing the specification as BLIF and having Yosys prove the circuit equal (`src/boolean-ir.mjs`) — comes from seeing that work. ncd2net lowers *models* into circuits; gatecraft lowers *judgements*.
 
 ## License
 
